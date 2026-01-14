@@ -1,5 +1,4 @@
 local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
 
 local WormModule = require(game:GetService("ReplicatedStorage").Shared.WormModule);
 
@@ -13,7 +12,7 @@ function setupBasket(basket : Model) : nil
     -- setup basket activation on farm entered
     playerEnteredFarm.Event:Connect(function(player, farm)
         activatedEvent = basket.Activated:Connect(function()
-            local worm = WormModule.new("name", 1, basket.Handle.CFrame, farm)
+            local worm = WormModule.new("name", 1, basket.Handle.CFrame, farm, player)
             worm:start()
         end)
     end)
