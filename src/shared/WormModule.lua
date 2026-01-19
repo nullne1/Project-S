@@ -29,8 +29,10 @@ end
 function Worm:start() : nil
 	-- create worm
 	local wormBody = Worm.createWorm(self.SpawnCFrame)
-	CocoonFinished.Event:Connect(function ()
-		wormBody:Destroy()
+	CocoonFinished.Event:Connect(function(finishedWormBody)
+		if (finishedWormBody == wormBody) then
+			wormBody:Destroy()
+		end
 	end)
 	Worm.goToLeaf(wormBody, self.Farm)
 	Worm.pupate(wormBody, self.Farm)
