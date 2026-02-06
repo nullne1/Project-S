@@ -1,6 +1,7 @@
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local CocoonModule = require(ReplicatedStorage.Shared.CocoonModule);
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
@@ -35,10 +36,10 @@ function Worm:start() : nil
 		end
 	end)
 	Worm.goToLeaf(wormBody, self.Farm)
-	Worm.pupate(wormBody, self.Farm)
+	Worm.pupate(wormBody, self.Farm, self.Player)
 end
 
-function Worm.pupate(wormBody : Part, farm : Model) : nil
+function Worm.pupate(wormBody : Part, farm : Model, player: string) : nil
 	local linearTweenInfo = TweenInfo.new(
 		0.2,
 		Enum.EasingStyle.Linear,
@@ -46,7 +47,7 @@ function Worm.pupate(wormBody : Part, farm : Model) : nil
 	)
 
 	-- fire cocoon event
-	CocoonStart:Fire(wormBody, farm)
+	CocoonStart:Fire(wormBody, farm, player)
 
 	-- makes worm look in different directions, mimicing pupating
 	local pupateGoal = {}
@@ -111,23 +112,9 @@ function Worm.findBranch(farm : Model) : Part
 end
 
 function Worm.createWorm(spawnCFrame : CFrame) : Part
-	local wormBody = Instance.new("Part")
-	local eyes = Instance.new("Decal")
-	
-	wormBody.Anchored = true
-	wormBody.CanCollide = false
-	wormBody.Shape = "Cylinder"
-	wormBody.Size = Vector3.new(3, 1, 1)
-    wormBody.Color = Color3.fromHex("#D5DCCE")
-	wormBody.Material = "Carpet"
-	wormBody.TopSurface = Enum.SurfaceType.Smooth
-	wormBody.BottomSurface = Enum.SurfaceType.Smooth
-	wormBody.Parent = workspace.Assets.Blocks.Worms
+	local wormBody = ServerStorage.Worms.BasicWorm:Clone()
     wormBody.CFrame = spawnCFrame
-	
-	eyes.Texture = "http://www.roblox.com/asset/?id=885449864"
-	eyes.Face = Enum.NormalId.Right
-	eyes.Parent = wormBody
+	wormBody.Parent = workspace.Assets.Parts.Worms
 	
 	return wormBody
 end

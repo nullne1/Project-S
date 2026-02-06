@@ -1,16 +1,20 @@
 local TweenService = game:GetService("TweenService")
+local ServerStorage = game:GetService("ServerStorage")
+
 local Zone = require(game.ReplicatedStorage.ZonePluginModule.Zone)
+local PlayerDataModule = require(game.ReplicatedStorage.Shared.PlayerDataModule)
 local CocoonFinished = game:GetService("ServerStorage").BindableEvents.CocoonFinished
 
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part) : table
+function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part, player: string) : table
     local self = setmetatable({}, Cocoon)
 
     self.WormBody = wormBody
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
+    self.Player = player
 
     return self
 end
@@ -19,10 +23,12 @@ function Cocoon:start() : nil
     local ball = Cocoon.createCocoon(self.WormBody, self.SpawnCFrame)
     local ballZone = Zone.new(ball)
     Cocoon.spinCocoon(ball, self.Farm, self.WormBody)
+    local notCollected = true
     ball.Touched:Connect(function(part)
-        if part.Parent:FindFirstChild("Humanoid") then
-            print("+1 Cocoon")
-            ball:Destroy()
+        if notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player) then
+            notCollected = false
+            self.Player.leaderstats.Cocoons.Value += 1
+            ball.Parent = ServerStorage
         end
     end)
 end
@@ -43,15 +49,9 @@ function Cocoon.spinCocoon(ball : Part, farm : Model, wormBody : Part) : nil
 end
 
 function Cocoon.createCocoon(worm : Part, spawnCFrame : CFrame) : Part
-    local ball = Instance.new("Part")
-    ball.Anchored = true
-    ball.CanCollide = false
-    ball.Shape = "Ball"
+    local ball = ServerStorage.Balls.BasicBall:Clone()
     ball.Transparency = 1
-    ball.Size = Vector3.new(worm.Size.X + 0.5, worm.Size.X + 0.5, worm.Size.X + 0.5)
-    ball.Material = "SmoothPlastic"
-    ball.CastShadow = false
-    ball.Parent = workspace.Assets.Blocks.Balls
+    ball.Parent = workspace.Assets.Parts.Balls
     ball.CFrame = spawnCFrame
 
     return ball
