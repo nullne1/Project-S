@@ -2,8 +2,8 @@ local TweenService = game:GetService("TweenService")
 local ServerStorage = game:GetService("ServerStorage")
 
 local Zone = require(game.ReplicatedStorage.ZonePluginModule.Zone)
-local PlayerDataModule = require(game.ReplicatedStorage.Shared.PlayerDataModule)
-local CocoonFinished = game:GetService("ServerStorage").BindableEvents.CocoonFinished
+local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDataModule)
+local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 
 local Cocoon = {}
 Cocoon.__index = Cocoon
@@ -25,9 +25,9 @@ function Cocoon:start() : nil
     Cocoon.spinCocoon(ball, self.Farm, self.WormBody)
     local notCollected = true
     ball.Touched:Connect(function(part)
-        if notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player) then
+        if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
             notCollected = false
-            self.Player.leaderstats.Cocoons.Value += 1
+            PlayerData.addBalls(self.Player, 1)
             ball.Parent = ServerStorage
         end
     end)

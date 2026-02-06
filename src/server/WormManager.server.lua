@@ -1,11 +1,11 @@
 local CollectionService = game:GetService("CollectionService")
+local ServerStorage = game:GetService("ServerStorage")
 
-local WormModule = require(game:GetService("ReplicatedStorage").Shared.WormModule);
+local WormModule = require(game:GetService("ReplicatedStorage").Shared.WormModule)
 
-local playerEnteredFarm = game.ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
-local playerExitedFarm = game.ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
+local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
+local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
 		
-local playerInFarm = false
 local activatedEvent
 
 function setupSpawner(spawner : Model) : nil
