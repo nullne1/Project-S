@@ -6,15 +6,15 @@ local ServerStorage = game:GetService("ServerStorage")
 local CocoonModule = require(ReplicatedStorage.Shared.CocoonModule);
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
 
-local CocoonStart = game:GetService("ServerStorage").BindableEvents.CocoonStart
-local CocoonFinished = game:GetService("ServerStorage").BindableEvents.CocoonFinished
-
+local CocoonStart = ServerStorage.BindableEvents.CocoonStart
+local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
+local farmsFolder = workspace.Assets.Parts.Farms
 
 local Worm = {};
 
 Worm.__index = Worm
 
-function Worm.new(name : string, speed : number, spawnCFrame : CFrame, farm : Model, player : string) : table
+function Worm.new(name : string, speed : number, spawnCFrame : CFrame, farm : Folder, player : string) : table
 	local self = setmetatable({}, Worm)
 	
 	self.Name = name
@@ -35,11 +35,11 @@ function Worm:start() : nil
 			wormBody:Destroy()
 		end
 	end)
-	Worm.goToLeaf(wormBody, self.Farm)
-	Worm.pupate(wormBody, self.Farm, self.Player)
+	local tree = Worm.goToLeaf(wormBody, self.Farm)
+	Worm.pupate(wormBody, self.Farm, self.Player, tree)
 end
 
-function Worm.pupate(wormBody : Part, farm : Model, player: string) : nil
+function Worm.pupate(wormBody, farm, player, tree) : nil
 	local linearTweenInfo = TweenInfo.new(
 		0.2,
 		Enum.EasingStyle.Linear,
@@ -47,7 +47,7 @@ function Worm.pupate(wormBody : Part, farm : Model, player: string) : nil
 	)
 
 	-- fire cocoon event
-	CocoonStart:Fire(wormBody, farm, player)
+	CocoonStart:Fire(wormBody, farm, player, tree)
 
 	-- makes worm look in different directions, mimicing pupating
 	local pupateGoal = {}
@@ -68,7 +68,7 @@ function Worm.pupate(wormBody : Part, farm : Model, player: string) : nil
 	end
 end
 
-function Worm.goToLeaf(wormBody : Part, farm : Model) : nil
+function Worm.goToLeaf(wormBody : Part, farm : Folder)
 	local linearTweenInfo = TweenInfo.new(
 		1,
 		Enum.EasingStyle.Linear,
@@ -77,9 +77,10 @@ function Worm.goToLeaf(wormBody : Part, farm : Model) : nil
 	local wormSize = wormBody.Size.Y
 
 	-- get tree info
-	local trunk = farm.Tree.Trunk
+	local tree = farm.Trees:GetChildren()[(math.random(1, #farm.Trees:GetChildren()))]
+	local trunk = tree.Trunk
 	local treeCFrame = trunk.CFrame
-	local branch = Worm.findBranch(farm)
+	local branch = Worm.findBranch(tree)
 	local leaf = branch.Leaf
 
 	local treeTarget = CFrame.new(treeCFrame.X, 1, treeCFrame.Z)
@@ -104,10 +105,11 @@ function Worm.goToLeaf(wormBody : Part, farm : Model) : nil
 	trunkTween.Completed:Wait()
 	leafTween:Play()
 	leafTween.Completed:Wait()
+	return tree
 end
 
-function Worm.findBranch(farm : Model) : Part
-	local branches = farm.Tree.Trunk:GetChildren()
+function Worm.findBranch(tree : Model) : Part
+	local branches = tree.Trunk:GetChildren()
 	return branches[math.random(1, #branches)]
 end
 

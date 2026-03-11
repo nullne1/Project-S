@@ -1,68 +1,123 @@
 local RunService = game:GetService("RunService")
 local PlayersService = game:GetService("Players")
-local Zone = require(game.ReplicatedStorage.ZonePluginModule.Zone)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
-local playerEnteredFarm = game.ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
-local playerExitedFarm = game.ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
+local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
+local TreeModule = require(ReplicatedStorage.Shared.TreeModule)
 
-function main()
-    -- creates a zone based on farmArea part
-    local farmArea = workspace.Assets.Parts.Farms.Farm1.FarmArea
-    farmArea.Anchored = true
-    farmArea.CanCollide = false
-    farmArea.CanQuery = true
-    farmArea.CanTouch = true
+local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
+local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
+local trees = ServerStorage.Trees
 
-    -- redo this maybe for instanced farms
-    local farm = workspace.Assets.Parts.Farms.Farm1
+local farmsFolder = workspace.Assets.Parts.Farms
+local treeTemplates = ServerStorage.Trees:GetChildren()
 
-    local farmZone = Zone.new(farmArea)
+-- Configuration
+local MAX_TREES_PER_ZONE = 1
+local SPAWN_INTERVAL = 0.1
+local MIN_SPACING = 15        
+local MAX_SPAWN_ATTEMPTS = 10
 
-    farmZone.playerEntered:Connect(function(player)
-        playerEnteredFarm:Fire(player, farm)
-    end)
+local activeTrees = {}
 
-    farmZone.playerExited:Connect(function(player)
-        playerExitedFarm:Fire(player)
-    end)
+function farmSetup()
+	for _, farm in ipairs(farmsFolder:GetChildren()) do
+    	-- creates a zone based on farmArea part
+		local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
+		local farmArea = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].FarmArea
+		farmArea.Anchored = true
+		farmArea.CanCollide = false
+		farmArea.CanQuery = true
+		farmArea.CanTouch = true
+
+		-- redo this maybe for instanced farms
+
+		local farmZone = Zone.new(farmArea)
+		
+		farmZone.playerEntered:Connect(function(player)
+			playerEnteredFarm:Fire(player, farm)
+		end)
+
+		farmZone.playerExited:Connect(function(player)
+			playerExitedFarm:Fire(player)
+		end)
+	end
 end
 
-main()
+farmSetup()
+
+local rng = Random.new()
+
+local function getRandomPointInCylinder(farm)
+	-- SWAPPED AXES for a flat Roblox Cylinder: 
+	-- Y is now used for the wide radius
+	local radius = farm.Size.Y / 2 
+
+	local angle = rng:NextNumber() * math.pi * 2
+	local dist = radius * math.sqrt(rng:NextNumber())
+
+	-- X is now used to push the tree up to the flat top surface
+	-- Y and Z are used for the wide circular spread
+	local offset = Vector3.new(farm.Size.X - 6.4, math.cos(angle) * dist, math.sin(angle) * dist)
+
+	return farm.CFrame * offset
+end
+
+local function getValidSpawnPoint(zonePart, currentZoneTrees)
+	for attempt = 1, MAX_SPAWN_ATTEMPTS do
+		local testPos = getRandomPointInCylinder(zonePart)
+		local isTooClose = false
+
+		-- Check distance against OTHER trees currently tracked in this zone
+		for _, treeObj in ipairs(currentZoneTrees) do
+			if treeObj.Model and treeObj.Model.PrimaryPart then
+				local distance = (treeObj.Model.PrimaryPart.Position - testPos).Magnitude
+				if distance < MIN_SPACING then
+					isTooClose = true
+					break
+				end
+			end
+		end
+
+		if not isTooClose then
+			return testPos
+		end
+	end
+	return nil 
+end
+
+while true do
+	for _, zoneFolder in ipairs(farmsFolder:GetChildren()) do
+		local zone = zoneFolder.Floor
+		-- Ensure a table exists for this zone
+		if not activeTrees[zone] then
+			activeTrees[zone] = {}
+		end
+
+		local currentZoneTrees = activeTrees[zone]
+
+		-- 1. Clean up the table (remove trees that despawned or died)
 
 
+		-- 2. Spawn a new tree if the zone isn't full
+		if #currentZoneTrees < MAX_TREES_PER_ZONE then
+			local spawnPos = getValidSpawnPoint(zone, currentZoneTrees)
+			if spawnPos then
+				local template = treeTemplates[math.random(1, #treeTemplates)]
 
+				-- Handle rotation to keep trees upright and varied
+				local originalRotation = template:GetPivot().Rotation
+				local finalCFrame = CFrame.new(spawnPos) * originalRotation
 
+				-- Create the object using our OOP module
+				local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
 
+				-- Store it in our tracking table
+				table.insert(currentZoneTrees, newTree)
+			end
+		end
+	end
 
-
-
---RunService.Heartbeat:Connect(function(deltaTime: number) 
---	local parts = workspace:GetPartsInPart(farmArea)
---	local hitCharacters = {}
---	for i, part in pairs(parts) do
---		if part.Parent:FindFirstChild("Humanoid") and not table.find(hitCharacters, part.Parent) then
---			table.insert(hitCharacters, part.Parent)
---		end
---	end
---	--[[ 
---	fix for multiplayer
---	--]]
---	if #hitCharacters > 0 then
---		for i, character in pairs(hitCharacters) do
---			remoteEvent:FireClient(PlayersService:FindFirstChild(tostring(hitCharacters[i])))
---		end
---	end
---end)
-
---farmArea.Touched:Connect(function(part: BasePart) 
---	local hitCharacters = {}
---	if part.Parent:FindFirstChild("Humanoid") and not table.find(hitCharacters, part.Parent) then
---		table.insert(hitCharacters, part.Parent)
---	end
---	if #hitCharacters > 0 then
---		for i, character in pairs(hitCharacters) do
---			remoteEvent:FireClient(PlayersService:FindFirstChild(tostring(hitCharacters[i])))
---		end
---	end
---end)
-
+	task.wait(SPAWN_INTERVAL)
+end
