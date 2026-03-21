@@ -1,13 +1,10 @@
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
-
-local CocoonModule = require(ReplicatedStorage.Shared.CocoonModule);
-local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
+local WormFoundTree = ServerStorage.BindableEvents.WormFoundTree
+
 local farmsFolder = workspace.Assets.Parts.Farms
 
 local Worm = {};
@@ -35,8 +32,24 @@ function Worm:start() : nil
 			wormBody:Destroy()
 		end
 	end)
-	local tree = Worm.goToLeaf(wormBody, self.Farm)
+	tree = Worm.findTree(self.Farm)
+	local tree = Worm.goToLeaf(wormBody, self.Farm, tree)
 	Worm.pupate(wormBody, self.Farm, self.Player, tree)
+end
+
+function Worm.findTree(farm)
+	local treeFound = false
+	local tree;
+	while (not treeFound) do
+		tree = farm.Trees:GetChildren()[(math.random(1, #farm.Trees:GetChildren()))]
+		if (tree:GetAttribute("Uses") or 0 > 0 and tree:GetAttribute("IsAlive") or false) then
+			treeFound = true
+			WormFoundTree:Fire(tree)
+			break
+		end
+		task.wait()
+	end
+	return tree
 end
 
 function Worm.pupate(wormBody, farm, player, tree) : nil
@@ -68,7 +81,7 @@ function Worm.pupate(wormBody, farm, player, tree) : nil
 	end
 end
 
-function Worm.goToLeaf(wormBody : Part, farm : Folder)
+function Worm.goToLeaf(wormBody : Part, farm : Folder, tree)
 	local linearTweenInfo = TweenInfo.new(
 		1,
 		Enum.EasingStyle.Linear,
@@ -76,14 +89,11 @@ function Worm.goToLeaf(wormBody : Part, farm : Folder)
 	)
 	local wormSize = wormBody.Size.Y
 
-	-- get tree info
-	local tree = farm.Trees:GetChildren()[(math.random(1, #farm.Trees:GetChildren()))]
 	local trunk = tree.Trunk
 	local treeCFrame = trunk.CFrame
 	local branch = Worm.findBranch(tree)
 	local leaf = branch.Leaf
 
-	local treeTarget = CFrame.new(treeCFrame.X, 1, treeCFrame.Z)
 	local floorPos = farm.Floor.Position.Y + wormSize
 
 	-- worm rotation setup

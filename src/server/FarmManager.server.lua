@@ -1,5 +1,3 @@
-local RunService = game:GetService("RunService")
-local PlayersService = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
@@ -8,20 +6,18 @@ local TreeModule = require(ReplicatedStorage.Shared.TreeModule)
 
 local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
 local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
+local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
 local trees = ServerStorage.Trees
 
 local farmsFolder = workspace.Assets.Parts.Farms
 local treeTemplates = ServerStorage.Trees:GetChildren()
 
--- Configuration
-local MAX_TREES_PER_ZONE = 1
-local SPAWN_INTERVAL = 0.1
-local MIN_SPACING = 15        
-local MAX_SPAWN_ATTEMPTS = 10
+local rng = Random.new()
+local MAX_TREES_PER_ZONE = 20
+local MIN_SPACING = 15    
+local MAX_SPAWN_ATTEMPTS = 2
 
-local activeTrees = {}
-
-function farmSetup()
+function zoneSetup() 
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
     	-- creates a zone based on farmArea part
 		local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
@@ -45,23 +41,19 @@ function farmSetup()
 	end
 end
 
-farmSetup()
-
-local rng = Random.new()
-
-local function getRandomPointInCylinder(farm)
+local function getRandomPointInCylinder(farmFloor)
 	-- SWAPPED AXES for a flat Roblox Cylinder: 
 	-- Y is now used for the wide radius
-	local radius = farm.Size.Y / 2 
+	local radius = farmFloor.Size.Y / 2 
 
 	local angle = rng:NextNumber() * math.pi * 2
 	local dist = radius * math.sqrt(rng:NextNumber())
 
 	-- X is now used to push the tree up to the flat top surface
 	-- Y and Z are used for the wide circular spread
-	local offset = Vector3.new(farm.Size.X - 6.4, math.cos(angle) * dist, math.sin(angle) * dist)
+	local offset = Vector3.new(farmFloor.Size.X - 6.4, math.cos(angle) * dist, math.sin(angle) * dist)
 
-	return farm.CFrame * offset
+	return farmFloor.CFrame * offset
 end
 
 local function getValidSpawnPoint(zonePart, currentZoneTrees)
@@ -87,37 +79,76 @@ local function getValidSpawnPoint(zonePart, currentZoneTrees)
 	return nil 
 end
 
-while true do
-	for _, zoneFolder in ipairs(farmsFolder:GetChildren()) do
-		local zone = zoneFolder.Floor
-		-- Ensure a table exists for this zone
-		if not activeTrees[zone] then
-			activeTrees[zone] = {}
-		end
+local activeTrees = {}
 
-		local currentZoneTrees = activeTrees[zone]
+function spawnInitialTrees()
+	local duration = 1 -- the loop will run for 10 seconds
+	local start_time = os.time()
+	local end_time = start_time + duration
+	while true do
+		for _, zoneFolder in ipairs(farmsFolder:GetChildren()) do
+			local zone = zoneFolder.Floor
+			-- Ensure a table exists for this zone
+			if not activeTrees[zone] then
+				activeTrees[zone] = {}
+			end
 
-		-- 1. Clean up the table (remove trees that despawned or died)
+			local currentZoneTrees = activeTrees[zone]
 
+			-- 1. Clean up the table (remove trees that despawned or died)
 
-		-- 2. Spawn a new tree if the zone isn't full
-		if #currentZoneTrees < MAX_TREES_PER_ZONE then
-			local spawnPos = getValidSpawnPoint(zone, currentZoneTrees)
-			if spawnPos then
-				local template = treeTemplates[math.random(1, #treeTemplates)]
+			-- 2. Spawn a new tree if the zone isn't full
+			if #currentZoneTrees < MAX_TREES_PER_ZONE then
+				local spawnPos = getValidSpawnPoint(zone, currentZoneTrees)
+				if spawnPos then
+					local template = treeTemplates[math.random(1, #treeTemplates)]
 
-				-- Handle rotation to keep trees upright and varied
-				local originalRotation = template:GetPivot().Rotation
-				local finalCFrame = CFrame.new(spawnPos) * originalRotation
+					-- Handle rotation to keep trees upright and varied
+					local originalRotation = template:GetPivot().Rotation
+					local finalCFrame = CFrame.new(spawnPos) * originalRotation
 
-				-- Create the object using our OOP module
-				local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
+					-- Create the object using our OOP module
+					local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
 
-				-- Store it in our tracking table
-				table.insert(currentZoneTrees, newTree)
+					-- Store it in our tracking table
+					table.insert(currentZoneTrees, newTree)
+				end
 			end
 		end
+		if os.time() >= end_time then
+        	break -- Exit the loop
+    	end
+		task.wait()
 	end
-
-	task.wait(SPAWN_INTERVAL)
 end
+
+local function replaceTree(farm)
+    local farmFloor = farm.Floor
+    
+    if not activeTrees[farmFloor] then
+        activeTrees[farmFloor] = {}
+    end
+    
+    local currentZoneTrees = activeTrees[farmFloor]
+
+    if #currentZoneTrees then
+        local spawnPos = getValidSpawnPoint(farmFloor, currentZoneTrees)
+        
+        if spawnPos then
+            local template = treeTemplates[math.random(1, #treeTemplates)]
+            local originalRotation = template:GetPivot().Rotation
+            local finalCFrame = CFrame.new(spawnPos) * originalRotation
+            
+            local newTree = TreeModule.new(template, finalCFrame, farmFloor.Parent)
+            table.insert(currentZoneTrees, newTree)
+        end
+    end
+end
+
+function farmSetup()
+	zoneSetup()
+	spawnInitialTrees()
+	TreeDespawned.Event:Connect(replaceTree)
+end
+
+farmSetup()
