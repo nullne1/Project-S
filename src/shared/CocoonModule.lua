@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Zone = require(game.ReplicatedStorage.ZonePluginModule.Zone)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
+local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
 
 local CollectSilk = ReplicatedStorage.RemoteEvents.CollectSilk
 
@@ -12,21 +13,21 @@ local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part, player: string) : table
+function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part, player: string, targetTree) : table
     local self = setmetatable({}, Cocoon)
 
     self.WormBody = wormBody
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
+	self.targetTree = targetTree
 
     return self
 end
 
 function Cocoon:start() : nil
     local ball = Cocoon.createCocoon(self.WormBody, self.SpawnCFrame)
-    local ballZone = Zone.new(ball)
-    Cocoon.spinCocoon(ball, self.Farm, self.WormBody)
+    Cocoon.spinCocoon(ball, self.Farm, self.WormBody, self.targetTree)
     local notCollected = true
     ball.Touched:Connect(function(part)
         if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
@@ -87,7 +88,7 @@ function Cocoon.getTargetPos(ball : Part, farm : Folder) : CFrame
 	return floorArea.CFrame * Vector3.new(floorArea.Size.X / 2 - ball.Size.Z + 0.8, offsetX, offsetZ)
 end
 
-function Cocoon.spinCocoon(ball : Part, farm : Folder, wormBody : Part) : nil
+function Cocoon.spinCocoon(ball : Part, farm : Folder, wormBody : Part, targetTree) : nil
     local linearTweenInfo = TweenInfo.new(
         1,
         Enum.EasingStyle.Linear,
@@ -97,8 +98,13 @@ function Cocoon.spinCocoon(ball : Part, farm : Folder, wormBody : Part) : nil
     local dropTween = TweenService:Create(ball, linearTweenInfo, {Position = Vector3.new(ball.Position.X, farm.Floor.Position.Y + 2, ball.Position.Z)})
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
-	CocoonFinished:Fire(wormBody)
-
+	CocoonFinished:Fire(wormBody, targetTree)
+	local treeObj = TreeRegistry[targetTree]
+	print(treeObj)
+	if treeObj then
+		treeObj.IsAlive = false
+        treeObj:Despawn()
+	end
 	Cocoon.launch(ball, farm)
 
     --dropTween:Play()

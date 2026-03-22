@@ -5,7 +5,7 @@ local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local WormFoundTree = ServerStorage.BindableEvents.WormFoundTree
 
-local farmsFolder = workspace.Assets.Parts.Farms
+local farm = workspace.Assets.Parts.Farms
 
 local Worm = {};
 
@@ -17,7 +17,7 @@ function Worm.new(name : string, speed : number, spawnCFrame : CFrame, farm : Fo
 	self.Name = name
 	self.Speed = speed
 	self.SpawnCFrame = spawnCFrame
-	self.Farm = farm
+	self.farm = farm
 	self.Player = player
 	self.NearBranch = false
 	
@@ -25,34 +25,41 @@ function Worm.new(name : string, speed : number, spawnCFrame : CFrame, farm : Fo
 end
 
 function Worm:start() : nil
-	-- create worm
-	local wormBody = Worm.createWorm(self.SpawnCFrame)
-	CocoonFinished.Event:Connect(function(finishedWormBody)
-		if (finishedWormBody == wormBody) then
-			wormBody:Destroy()
-		end
-	end)
-	tree = Worm.findTree(self.Farm)
-	local tree = Worm.goToLeaf(wormBody, self.Farm, tree)
-	Worm.pupate(wormBody, self.Farm, self.Player, tree)
+	-- looks for available tree, if not found then stop execution
+	targetTree = Worm.findTree(self.farm)
+	if (not targetTree) then
+		print("no available tree found")
+		setmetatable(self, nil)
+    	table.clear(self)
+	else
+		local wormBody = Worm.createWorm(self.SpawnCFrame)
+		CocoonFinished.Event:Connect(function(finishedWormBody)
+			if (finishedWormBody == wormBody) then
+				wormBody:Destroy()
+				setmetatable(self, nil)
+    			table.clear(self)
+			end
+		end)
+		Worm.goToLeaf(wormBody, self.farm, targetTree)
+		Worm.pupate(wormBody, self.farm, self.Player, targetTree)
+	end
 end
 
 function Worm.findTree(farm)
-	local treeFound = false
-	local tree;
-	while (not treeFound) do
-		tree = farm.Trees:GetChildren()[(math.random(1, #farm.Trees:GetChildren()))]
-		if (tree:GetAttribute("Uses") or 0 > 0 and tree:GetAttribute("IsAlive") or false) then
-			treeFound = true
-			WormFoundTree:Fire(tree)
+	local targetTree;
+	for _, treeModel in ipairs(farm.Trees:GetChildren()) do
+		local uses = treeModel:GetAttribute("Uses") or 0
+		local isAlive = treeModel:GetAttribute("IsAlive") or false
+		if (uses > 0 and isAlive) then
+			targetTree = treeModel
+			WormFoundTree:Fire(targetTree)
 			break
 		end
-		task.wait()
 	end
-	return tree
+	return targetTree
 end
 
-function Worm.pupate(wormBody, farm, player, tree) : nil
+function Worm.pupate(wormBody, farm, player, targetTree) : nil
 	local linearTweenInfo = TweenInfo.new(
 		0.2,
 		Enum.EasingStyle.Linear,
@@ -60,7 +67,7 @@ function Worm.pupate(wormBody, farm, player, tree) : nil
 	)
 
 	-- fire cocoon event
-	CocoonStart:Fire(wormBody, farm, player, tree)
+	CocoonStart:Fire(wormBody, farm, player, targetTree)
 
 	-- makes worm look in different directions, mimicing pupating
 	local pupateGoal = {}
@@ -81,7 +88,7 @@ function Worm.pupate(wormBody, farm, player, tree) : nil
 	end
 end
 
-function Worm.goToLeaf(wormBody : Part, farm : Folder, tree)
+function Worm.goToLeaf(wormBody : Part, farm : Folder, targetTree)
 	local linearTweenInfo = TweenInfo.new(
 		1,
 		Enum.EasingStyle.Linear,
@@ -89,9 +96,9 @@ function Worm.goToLeaf(wormBody : Part, farm : Folder, tree)
 	)
 	local wormSize = wormBody.Size.Y
 
-	local trunk = tree.Trunk
+	local trunk = targetTree.Trunk
 	local treeCFrame = trunk.CFrame
-	local branch = Worm.findBranch(tree)
+	local branch = Worm.findBranch(targetTree)
 	local leaf = branch.Leaf
 
 	local floorPos = farm.Floor.Position.Y + wormSize

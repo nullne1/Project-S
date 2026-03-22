@@ -1,0 +1,2 @@
+local TreeRegistry = {}
+return TreeRegistry
