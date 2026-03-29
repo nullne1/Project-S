@@ -10,9 +10,10 @@ local activatedEvent
 
 function setupSpawner(spawner : Model) : nil
     -- setup basket activation on farm entered
+    -- make script track players to support multiplayer
     playerEnteredFarm.Event:Connect(function(player, farm)
         activatedEvent = spawner.Activated:Connect(function()
-            local worm = WormModule.new("name", 1, spawner.Handle.CFrame, farm, player)
+            local worm = WormModule.new("name", 2, spawner.Handle.CFrame, farm, player)
             worm:start()
         end)
     end)

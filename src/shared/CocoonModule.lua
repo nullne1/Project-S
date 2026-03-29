@@ -100,10 +100,12 @@ function Cocoon.spinCocoon(ball : Part, farm : Folder, wormBody : Part, targetTr
     spinCocoonTween.Completed:Wait()
 	CocoonFinished:Fire(wormBody, targetTree)
 	local treeObj = TreeRegistry[targetTree]
-	print(treeObj)
-	if treeObj then
-		treeObj.IsAlive = false
-        treeObj:Despawn()
+	--print(treeObj)
+	if (targetTree:GetAttribute("Uses") == 0) then
+		targetTree:SetAttribute("IsAlive", false)
+		pcall(function()
+			treeObj:Despawn()
+		end)
 	end
 	Cocoon.launch(ball, farm)
 

@@ -13,8 +13,7 @@ local treeTemplates = ServerStorage.Trees:GetChildren()
 
 local rng = Random.new()
 local MAX_TREES_PER_ZONE = 50
-local MIN_SPACING = 5
-local MAX_SPAWN_ATTEMPTS = 2
+local MIN_SPACING = 10
 
 function zoneSetup() 
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
@@ -56,32 +55,32 @@ local function getRandomPointInCylinder(farmFloor)
 end
 
 local function getValidSpawnPoint(zonePart, currentZoneTrees)
-	for attempt = 1, MAX_SPAWN_ATTEMPTS do
-		local testPos = getRandomPointInCylinder(zonePart)
-		local isTooClose = false
+	local testPos = getRandomPointInCylinder(zonePart)
+	local isTooClose = false
 
-		-- Check distance against OTHER trees currently tracked in this zone
-		for _, treeObj in ipairs(currentZoneTrees) do
-			if treeObj.Model and treeObj.Model.PrimaryPart then
-				local distance = (treeObj.Model.PrimaryPart.Position - testPos).Magnitude
-				if distance < MIN_SPACING then
-					isTooClose = true
-					break
-				end
+	-- Check distance against OTHER trees currently tracked in this zone
+	for _, treeObj in ipairs(currentZoneTrees) do
+		if treeObj.Model and treeObj.Model.PrimaryPart then
+			local distance = (treeObj.Model.PrimaryPart.Position - testPos).Magnitude
+			if distance < MIN_SPACING then
+				isTooClose = true
+				break
 			end
 		end
-
-		if not isTooClose then
-			return testPos
-		end
 	end
+
+	if not isTooClose then
+		return testPos
+	end
+
 	return nil 
 end
 
 local activeTrees = {}
 
 function spawnInitialTrees()
-	local duration = 1 -- the loop will run for 10 seconds
+	-- make load time depend on if every zone is fully filled by making dictionary of zones with true or false
+	local duration = 5
 	local start_time = os.time()
 	local end_time = start_time + duration
 	while true do
@@ -113,6 +112,7 @@ function spawnInitialTrees()
 					table.insert(currentZoneTrees, newTree)
 				end
 			end
+			print(#currentZoneTrees)
 		end
 		if os.time() >= end_time then
         	break -- Exit the loop
@@ -129,8 +129,13 @@ local function replaceTree(farm)
     end
     
     local currentZoneTrees = activeTrees[farmFloor]
+	for i, treeObj in ipairs(currentZoneTrees) do
+		if next(treeObj) == nil then
+			table.remove(currentZoneTrees, i)
+		end
+	end
 
-    if #currentZoneTrees then
+	while (#currentZoneTrees < MAX_TREES_PER_ZONE) do
         local spawnPos = getValidSpawnPoint(farmFloor, currentZoneTrees)
         
         if spawnPos then
@@ -141,7 +146,8 @@ local function replaceTree(farm)
             local newTree = TreeModule.new(template, finalCFrame, farmFloor.Parent)
             table.insert(currentZoneTrees, newTree)
         end
-    end
+		task.wait()
+	end
 end
 
 function farmSetup()
