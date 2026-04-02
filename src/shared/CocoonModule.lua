@@ -21,6 +21,7 @@ function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part, player: 
     self.Farm = farm
     self.Player = player
 	self.targetTree = targetTree
+	self.Silk = math.random(50, 100)
 
     return self
 end
@@ -34,7 +35,7 @@ function Cocoon:start() : nil
             notCollected = false
             PlayerData.addBalls(self.Player, 1)
             ball.Parent = ServerStorage
-            CollectSilk:FireClient(self.Player, ball.Position, "+100")
+            CollectSilk:FireClient(self.Player, ball.Position, "+" .. self.Silk)
         end
     end)
 end

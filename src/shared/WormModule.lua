@@ -132,7 +132,6 @@ function Worm:goToLeaf()
 		Enum.EasingStyle.Linear,
 		Enum.EasingDirection.In
 	)
-	print(distance / 20)
 
 	local linearTweenInfo = TweenInfo.new(
 		1, 
@@ -145,7 +144,7 @@ function Worm:goToLeaf()
 	self.WormBody.CFrame = self.WormBody.CFrame * CFrame.Angles(0, math.rad(90), 0)
 	local wormFrontVector = self.WormBody.CFrame.RightVector * 2
 
-	local floorTween = TweenService:Create(self.WormBody, linearTweenInfo, {Position = Vector3.new(self.WormBody.Position.X, floorPos, self.WormBody.Position.Z)})
+	local floorTween = TweenService:Create(self.WormBody, TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In ), {Position = Vector3.new(self.WormBody.Position.X, floorPos, self.WormBody.Position.Z)})
 	local trunkTween = TweenService:Create(self.WormBody, movementTweenInfo, {Position = Vector3.new(trunk.Position.X, 1, trunk.Position.Z) - wormFrontVector})
 
 	-- maybe add branch tween later on to make it look better

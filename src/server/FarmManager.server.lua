@@ -13,9 +13,10 @@ local treeTemplates = ServerStorage.Trees:GetChildren()
 
 local rng = Random.new()
 local MAX_TREES_PER_ZONE = 50
-local MIN_SPACING = 10
+local MIN_SPACING = 10	
 
 function zoneSetup() 
+	local farmDict = {}
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
     	-- creates a zone based on farmArea part
 		local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
@@ -28,13 +29,13 @@ function zoneSetup()
 		-- redo this maybe for instanced farms
 
 		local farmZone = Zone.new(farmArea)
-		
+		farmArray = {}
 		farmZone.playerEntered:Connect(function(player)
 			playerEnteredFarm:Fire(player, farm)
 		end)
 
 		farmZone.playerExited:Connect(function(player)
-			playerExitedFarm:Fire(player)
+			playerExitedFarm:Fire(player, farm)
 		end)
 	end
 end
@@ -112,7 +113,7 @@ function spawnInitialTrees()
 					table.insert(currentZoneTrees, newTree)
 				end
 			end
-			print(#currentZoneTrees)
+			--print(#currentZoneTrees)
 		end
 		if os.time() >= end_time then
         	break -- Exit the loop
