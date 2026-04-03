@@ -2,7 +2,6 @@ local TweenService = game:GetService("TweenService")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Zone = require(game.ReplicatedStorage.ZonePluginModule.Zone)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
 
@@ -13,48 +12,53 @@ local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormBody : Part, spawnCFrame : CFrame, farm : Part, player: string, targetTree) : table
+function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     local self = setmetatable({}, Cocoon)
 
     self.WormBody = wormBody
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
-	self.targetTree = targetTree
+	self.TargetTree = targetTree
+	self.DropAreaSize = self.TargetTree.DropArea.Size
+	self.DropAreaCFrame = self.TargetTree.DropArea.CFrame
+	print(tostring(self.DropAreaCFrame) .. " " .. tostring(self.DropAreaSize))
 	self.Silk = math.random(50, 100)
+	self.Ball = ServerStorage.Balls.BasicBall:Clone()
+    self.Ball.Transparency = 1
+    self.Ball.Parent = workspace.Assets.Parts.Balls
+    self.Ball.CFrame = self.SpawnCFrame
+
+	-- start
+	self:spinCocoon()
+    local notCollected = true
+    self.Ball.Touched:Connect(function(part)
+        if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
+            notCollected = false
+            PlayerData.addBalls(self.Player, 1)
+            self.Ball.Parent = ServerStorage
+            CollectSilk:FireClient(self.Player, self.Ball.Position, "+" .. self.Silk)
+        end
+    end)
 
     return self
 end
 
-function Cocoon:start() : nil
-    local ball = Cocoon.createCocoon(self.WormBody, self.SpawnCFrame)
-    Cocoon.spinCocoon(ball, self.Farm, self.WormBody, self.targetTree)
-    local notCollected = true
-    ball.Touched:Connect(function(part)
-        if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
-            notCollected = false
-            PlayerData.addBalls(self.Player, 1)
-            ball.Parent = ServerStorage
-            CollectSilk:FireClient(self.Player, ball.Position, "+" .. self.Silk)
-        end
-    end)
-end
-
-function Cocoon.launch(ball : Part, farm : Folder) : nil
-	local startPos = ball.Position
-	local targetPos = Cocoon.getTargetPos(ball, farm)
+function Cocoon:launch()
+	local startPos = self.Ball.Position
+	local targetPos = self:getTargetPos()
 	
 	local timeDuration = 1
 	local ARC_HEIGHT_GRAVITY = 100
 	local realGravity = workspace.Gravity
 	
-	local attachment = Instance.new("Attachment", ball)
-	local antiGravity = Instance.new("VectorForce", ball)
+	local attachment = Instance.new("Attachment", self.Ball)
+	local antiGravity = Instance.new("VectorForce", self.Ball)
 	antiGravity.Attachment0 = attachment
 	antiGravity.RelativeTo = Enum.ActuatorRelativeTo.World
 	antiGravity.Enabled = false -- Start disabled
 	
-	local lift = ball:GetMass() * (realGravity - ARC_HEIGHT_GRAVITY)
+	local lift = self.Ball:GetMass() * (realGravity - ARC_HEIGHT_GRAVITY)
 	antiGravity.Force = Vector3.new(0, lift, 0)
 	antiGravity.Enabled = true
 	
@@ -63,62 +67,58 @@ function Cocoon.launch(ball : Part, farm : Folder) : nil
 	local antigravity = 0.5 * virtualGravityVector * (timeDuration * timeDuration)
 	
 	local requiredVelocity = (displacement - antigravity) / timeDuration
-	ball.Anchored = false
-	ball.AssemblyLinearVelocity = requiredVelocity
-	ball.AssemblyAngularVelocity = Vector3.new(5, 5, 5) 
+	self.Ball.Anchored = false
+	self.Ball.AssemblyLinearVelocity = requiredVelocity
+	self.Ball.AssemblyAngularVelocity = Vector3.new(5, 5, 5) 
 
 	--print("Floating to target in " .. timeDuration .. " seconds...")
 
 	task.wait(timeDuration + 0.1)
 
-	ball.Anchored = true
-	ball.AssemblyLinearVelocity = Vector3.zero
-	ball.AssemblyAngularVelocity = Vector3.zero
-	ball.Position = targetPos
+	self.Ball.Anchored = true
+	self.Ball.AssemblyLinearVelocity = Vector3.zero
+	self.Ball.AssemblyAngularVelocity = Vector3.zero
+	self.Ball.Position = targetPos
 	antiGravity.Enabled = false
 	--print("Launched to:", targetPos)
 end
 
-function Cocoon.getTargetPos(ball : Part, farm : Folder) : CFrame
-	local floorArea = farm.Floor
-	local radius = math.min(floorArea.Size.Y, floorArea.Size.Z) / 2
+function Cocoon:getTargetPos()
+	local radius = math.min(self.DropAreaSize.Y, self.DropAreaSize.Z) / 2
 	local angle = math.random() * 2 * math.pi
 	local dist = radius * math.sqrt(math.random())
 	local offsetX = dist * math.cos(angle)
 	local offsetZ = dist * math.sin(angle)
-	return floorArea.CFrame * Vector3.new(floorArea.Size.X / 2 - ball.Size.Z + 0.8, offsetX, offsetZ)
+	return self.DropAreaCFrame * Vector3.new(self.DropAreaSize.X / 2 - self.Ball.Size.Z + 5.4, offsetX, offsetZ)
 end
 
-function Cocoon.spinCocoon(ball : Part, farm : Folder, wormBody : Part, targetTree) : nil
+function Cocoon:spinCocoon()
     local linearTweenInfo = TweenInfo.new(
         1,
         Enum.EasingStyle.Linear,
         Enum.EasingDirection.In
-)
-    local spinCocoonTween = TweenService:Create(ball, linearTweenInfo, {Transparency = 0})
-    local dropTween = TweenService:Create(ball, linearTweenInfo, {Position = Vector3.new(ball.Position.X, farm.Floor.Position.Y + 2, ball.Position.Z)})
+	)
+	print(self.Ball)
+    local spinCocoonTween = TweenService:Create(self.Ball, linearTweenInfo, {Transparency = 0})
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
-	CocoonFinished:Fire(wormBody, targetTree)
-	local treeObj = TreeRegistry[targetTree]
+	CocoonFinished:Fire(self.WormBody, self.TargetTree)
+	local treeObj = TreeRegistry[self.TargetTree]
 	--print(treeObj)
-	if (targetTree:GetAttribute("Uses") == 0) then
-		targetTree:SetAttribute("IsAlive", false)
+	if (self.TargetTree:GetAttribute("Uses") == 0) then
+		self.TargetTree:SetAttribute("IsAlive", false)
 		pcall(function()
 			treeObj:Despawn()
 		end)
 	end
-	Cocoon.launch(ball, farm)
-
-    --dropTween:Play()
-    --dropTween.Completed:Wait()
+	self:launch()
 end
 
-function Cocoon.createCocoon(worm : Part, spawnCFrame : CFrame) : Part
-    local ball = ServerStorage.Balls.BasicBall:Clone()
-    ball.Transparency = 1
-    ball.Parent = workspace.Assets.Parts.Balls
-    ball.CFrame = spawnCFrame
+function Cocoon:createCocoon()
+    local ballCopy = ServerStorage.Balls.BasicBall:Clone()
+    ballCopy.Transparency = 1
+    ballCopy.Parent = workspace.Assets.Parts.Balls
+    ballCopy.CFrame = self.SpawnCFrame
 
     return ball
 end

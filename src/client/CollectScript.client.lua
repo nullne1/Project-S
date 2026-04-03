@@ -39,8 +39,8 @@ CollectSilk.OnClientEvent:Connect(function(startPos, text)
 	)
 
     local sizeTweenInfo = TweenInfo.new(
-        floatTime + fadeOutTime,
-        Enum.EasingStyle.Bounce,
+        0.2,
+        Enum.EasingStyle.Linear,
 		Enum.EasingDirection.Out
     )
 

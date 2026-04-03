@@ -19,7 +19,7 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
 	self.Model.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Trees
 	self.Model:SetAttribute("IsAlive", true)
-	self.Model:SetAttribute("Uses", 10)
+	self.Model:SetAttribute("Uses", 2)
 	self.Zone = zone
 	TreeRegistry[self.Model] = self
 
