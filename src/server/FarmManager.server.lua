@@ -12,7 +12,7 @@ local farmsFolder = workspace.Assets.Parts.Farms
 local treeTemplates = ServerStorage.Trees:GetChildren()
 
 local rng = Random.new()
-local MAX_TREES_PER_ZONE = 10
+local MAX_TREES_PER_ZONE = 1
 local MIN_SPACING = 10	
 
 function zoneSetup() 
@@ -108,7 +108,6 @@ function spawnInitialTrees()
 
 					-- Create the object using our OOP module
 					local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
-
 					-- Store it in our tracking table
 					table.insert(currentZoneTrees, newTree)
 				end

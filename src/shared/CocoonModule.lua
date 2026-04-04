@@ -20,14 +20,21 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     self.Farm = farm
     self.Player = player
 	self.TargetTree = targetTree
+	self.TreeData = TreeRegistry[self.TargetTree]
 	self.DropAreaSize = self.TargetTree.DropArea.Size
 	self.DropAreaCFrame = self.TargetTree.DropArea.CFrame
-	print(tostring(self.DropAreaCFrame) .. " " .. tostring(self.DropAreaSize))
 	self.Silk = math.random(50, 100)
 	self.Ball = ServerStorage.Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = self.SpawnCFrame
+	if (self.TreeData["cocoonUses"] == 1) then
+		self.TreeData["cocoonUses"] = 0
+		self.Last = true
+	else
+		self.TreeData["cocoonUses"] -= 1
+		self.Last = false
+	end
 
 	-- start
 	self:spinCocoon()
@@ -98,20 +105,14 @@ function Cocoon:spinCocoon()
         Enum.EasingStyle.Linear,
         Enum.EasingDirection.In
 	)
-	print(self.Ball)
     local spinCocoonTween = TweenService:Create(self.Ball, linearTweenInfo, {Transparency = 0})
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
 	CocoonFinished:Fire(self.WormBody, self.TargetTree)
-	local treeObj = TreeRegistry[self.TargetTree]
-	--print(treeObj)
-	if (self.TargetTree:GetAttribute("Uses") == 0) then
-		self.TargetTree:SetAttribute("IsAlive", false)
-		pcall(function()
-			treeObj:Despawn()
-		end)
-	end
 	self:launch()
+	if (self.Last) then
+		self.TreeData["module"]:Despawn()
+	end
 end
 
 function Cocoon:createCocoon()

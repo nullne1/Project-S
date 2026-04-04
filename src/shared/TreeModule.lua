@@ -1,7 +1,6 @@
 local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
 
-local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
-local WormFoundTree = ServerStorage.BindableEvents.WormFoundTree
 local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
 
 local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
@@ -18,35 +17,25 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	self.Farm = farm
 	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
 	self.Model.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Trees
-	self.Model:SetAttribute("IsAlive", true)
-	self.Model:SetAttribute("Uses", 2)
 	self.Zone = zone
-	TreeRegistry[self.Model] = self
-
-	-- setup tree despawn
-	self.Connect1 = WormFoundTree.Event:Connect(function(tree)
-		if (tree == self.Model) then
-			self.Model:SetAttribute("Uses", self.Model:GetAttribute("Uses") - 1)
-			if (self.Model:GetAttribute("Uses") == 0) then
-				self.IsAlive = false
-				self.Model:SetAttribute("IsAlive", false)
-			end
-		end
-	end)
-
-	-- self.Connect2 = CocoonFinished.Event:Connect(function(wormBody, tree)
-	-- 	if tree == self.Model then
-	-- 		if (not self.IsAlive) then
-	-- 			self:Despawn()
-	-- 		end
-	-- 	end
-	-- end)
-
+	TreeRegistry[self.Model] = {
+		module = self,
+		uses = 2,
+		cocoonUses = 2
+	}
 	return self
 end
 
 function Tree:Despawn()
-	--self.Connect2:Disconnect()
+	-- local despawnTween
+	-- for _, part in pairs(self.Model:GetDescendants()) do
+	-- 	-- Check if it's a part that can have transparency
+	-- 	if part:IsA("BasePart") or part:IsA("MeshPart") then
+	-- 		despawnTween = TweenService:Create(part, TweenInfo.new(1, Enum.EasingStyle.Linear), {Transparency = 1})
+	-- 		despawnTween:Play()
+	-- 	end
+	-- end
+	-- despawnTween.Completed:Wait()
 	TreeDespawned:Fire(self.Farm)
 	self.Model:Destroy()
     setmetatable(self, nil)

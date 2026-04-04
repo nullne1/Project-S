@@ -12,6 +12,17 @@ function PlayerData.setData(player, data) : nil
     sessionData[player.UserId] = data
 end
 
+
+
+
+
+
+
+
+
+
+
+
 -- CLEANUP: Called when player leaves to free up RAM
 function PlayerData.removeData(player) : nil
     sessionData[player.UserId] = nil
