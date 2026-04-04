@@ -109,18 +109,10 @@ function Cocoon:spinCocoon()
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
 	CocoonFinished:Fire(self.WormBody, self.TargetTree)
-	self:launch()
 	if (self.Last) then
 		self.TreeData["module"]:Despawn()
 	end
+	self:launch()
 end
 
-function Cocoon:createCocoon()
-    local ballCopy = ServerStorage.Balls.BasicBall:Clone()
-    ballCopy.Transparency = 1
-    ballCopy.Parent = workspace.Assets.Parts.Balls
-    ballCopy.CFrame = self.SpawnCFrame
-
-    return ball
-end
 return Cocoon

@@ -33,7 +33,7 @@ function PlayerData.addBalls(player, amount) : nil
     if (data) then
         data.balls = data.balls + amount
     end
-    print(data.balls)
+
 end
 
 return PlayerData
