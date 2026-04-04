@@ -12,28 +12,17 @@ function PlayerData.setData(player, data) : nil
     sessionData[player.UserId] = data
 end
 
-
-
-
-
-
-
-
-
-
-
-
 -- CLEANUP: Called when player leaves to free up RAM
 function PlayerData.removeData(player) : nil
     sessionData[player.UserId] = nil
 end
 
-function PlayerData.addBalls(player, amount) : nil
+function PlayerData.addSilk(player, amount) : nil
     local data = sessionData[player.UserId] -- Get the specific player's table
     if (data) then
-        data.balls = data.balls + amount
+        data.silk += amount
     end
-
+    print(data.silk)
 end
 
 return PlayerData

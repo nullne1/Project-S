@@ -2,7 +2,7 @@ local TweenService = game:GetService("TweenService")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
+local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
 
 local CollectSilk = ReplicatedStorage.RemoteEvents.CollectSilk
@@ -19,15 +19,16 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
+	self.PlayerData = PlayerDataModule.getData(player)
 	self.TargetTree = targetTree
 	self.TreeData = TreeRegistry[self.TargetTree]
 	self.DropAreaSize = self.TargetTree.DropArea.Size
 	self.DropAreaCFrame = self.TargetTree.DropArea.CFrame
-	self.Silk = math.random(50, 100)
 	self.Ball = ServerStorage.Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = self.SpawnCFrame
+	
 	if (self.TreeData["cocoonUses"] == 1) then
 		self.TreeData["cocoonUses"] = 0
 		self.Last = true
@@ -35,6 +36,9 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
 		self.TreeData["cocoonUses"] -= 1
 		self.Last = false
 	end
+	
+	local flatSilk = self.PlayerData["flatSilk"]
+	self.FlatSilk = math.random(math.ceil(flatSilk - flatSilk * 0.1), math.ceil(flatSilk + flatSilk * 0.1))
 
 	-- start
 	self:spinCocoon()
@@ -42,9 +46,9 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     self.Ball.Touched:Connect(function(part)
         if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
             notCollected = false
-            PlayerData.addBalls(self.Player, 1)
+            PlayerDataModule.addSilk(self.Player, self.FlatSilk)
             self.Ball.Parent = ServerStorage
-            CollectSilk:FireClient(self.Player, self.Ball.Position, "+" .. self.Silk)
+            CollectSilk:FireClient(self.Player, self.Ball.Position, "+" .. self.FlatSilk)
         end
     end)
 

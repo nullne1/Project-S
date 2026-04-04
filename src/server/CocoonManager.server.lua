@@ -3,6 +3,6 @@ local CocoonModule = require(game:GetService("ReplicatedStorage").Shared.CocoonM
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 
-CocoonStart.Event:Connect(function(wormBody, farm, player, targetTree, treeModule)
-    CocoonModule.new(wormBody, wormBody.CFrame, farm, player, targetTree, treeModule)
+CocoonStart.Event:Connect(function(wormBody, farm, player, targetTree)
+    CocoonModule.new(wormBody, wormBody.CFrame, farm, player, targetTree)
 end)

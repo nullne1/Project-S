@@ -76,7 +76,7 @@ function Worm:pupate()
 	)
 
 	-- fire cocoon event
-	CocoonStart:Fire(self.WormBody, self.Farm, self.Player, self.TargetTree, self.TreeModule)
+	CocoonStart:Fire(self.WormBody, self.Farm, self.Player, self.TargetTree)
 
 	-- makes worm look in different directions, mimicing pupating
 	local pupateGoal = {}

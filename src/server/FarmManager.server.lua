@@ -136,13 +136,10 @@ local function replaceTree(farm)
 	end
 
 	local start_time = os.time()
-	local duration = 5
+	local duration = 0.1
 	local end_time = start_time + duration
-	
 	while (#currentZoneTrees < MAX_TREES_PER_ZONE) do
-
         local spawnPos = getValidSpawnPoint(farmFloor, currentZoneTrees)
-        
         if spawnPos then
             local template = treeTemplates[math.random(1, #treeTemplates)]
             local originalRotation = template:GetPivot().Rotation
@@ -152,7 +149,6 @@ local function replaceTree(farm)
             table.insert(currentZoneTrees, newTree)
         end
 		if os.time() >= end_time then
-			print("break")
         	break -- Exit the loop
     	end
 		task.wait()

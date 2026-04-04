@@ -6,7 +6,10 @@ local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDat
 local DataStore = DataStoreService:GetDataStore("CocoonStats")
 
 local DEFAULT_DATA = {
-    balls = 0
+    silk = 0,
+    silkWorms = 0,
+    flatSilk = 25849,
+    crit_chance = 0.05
 }
 
 Players.PlayerAdded:Connect(function(player)
