@@ -1,14 +1,3 @@
-local TweenService = game:GetService("TweenService")
-local ServerStorage = game:GetService("ServerStorage")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
-local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
-
-local CollectSilk = ReplicatedStorage.RemoteEvents.CollectSilk
-
-local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
-
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
@@ -19,38 +8,12 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
-	self.PlayerData = PlayerDataModule.getData(player)
 	self.TargetTree = targetTree
-	self.TreeData = TreeRegistry[self.TargetTree]
-	self.DropAreaSize = self.TargetTree.DropArea.Size
-	self.DropAreaCFrame = self.TargetTree.DropArea.CFrame
-	self.Ball = ServerStorage.Balls.BasicBall:Clone()
+	self.Ball = game:GetService("ServerStorage").Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = self.SpawnCFrame
-	
-	if (self.TreeData["cocoonUses"] == 1) then
-		self.TreeData["cocoonUses"] = 0
-		self.Last = true
-	else
-		self.TreeData["cocoonUses"] -= 1
-		self.Last = false
-	end
-	
-	local flatSilk = self.PlayerData["flatSilk"]
-	self.FlatSilk = math.random(math.ceil(flatSilk - flatSilk * 0.1), math.ceil(flatSilk + flatSilk * 0.1))
-
-	-- start
-	self:spinCocoon()
-    local notCollected = true
-    self.Ball.Touched:Connect(function(part)
-        if (notCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(self.Player)) then
-            notCollected = false
-            PlayerDataModule.addSilk(self.Player, self.FlatSilk)
-            self.Ball.Parent = ServerStorage
-            CollectSilk:FireClient(self.Player, self.Ball.Position, "+" .. self.FlatSilk)
-        end
-    end)
+	self.CanBeCollected = false
 
     return self
 end
@@ -95,12 +58,13 @@ function Cocoon:launch()
 end
 
 function Cocoon:getTargetPos()
-	local radius = math.min(self.DropAreaSize.Y, self.DropAreaSize.Z) / 2
+	local dropAreaSize = self.TargetTree.DropArea.Size
+	local radius = math.min(dropAreaSize.Y, dropAreaSize.Z) / 2
 	local angle = math.random() * 2 * math.pi
 	local dist = radius * math.sqrt(math.random())
 	local offsetX = dist * math.cos(angle)
 	local offsetZ = dist * math.sin(angle)
-	return self.DropAreaCFrame * Vector3.new(self.DropAreaSize.X / 2 - self.Ball.Size.Z + 5.4, offsetX, offsetZ)
+	return self.TargetTree.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2 - self.Ball.Size.Z + 5.4, offsetX, offsetZ)
 end
 
 function Cocoon:spinCocoon()
@@ -109,14 +73,19 @@ function Cocoon:spinCocoon()
         Enum.EasingStyle.Linear,
         Enum.EasingDirection.In
 	)
-    local spinCocoonTween = TweenService:Create(self.Ball, linearTweenInfo, {Transparency = 0})
+    local spinCocoonTween = game:GetService("TweenService"):Create(self.Ball, linearTweenInfo, {Transparency = 0})
+
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
-	CocoonFinished:Fire(self.WormBody, self.TargetTree)
-	if (self.Last) then
-		self.TreeData["module"]:Despawn()
-	end
+
 	self:launch()
+	self.CanBeCollected = true
+end
+
+function Cocoon:Despawn()
+	self.Ball:Destroy()
+	setmetatable(self, nil)
+    table.clear(self)
 end
 
 return Cocoon

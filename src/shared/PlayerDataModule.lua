@@ -22,7 +22,6 @@ function PlayerData.addSilk(player, amount) : nil
     if (data) then
         data.silk += amount
     end
-    print(data.silk)
 end
 
 return PlayerData

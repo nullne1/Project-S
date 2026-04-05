@@ -8,8 +8,9 @@ local DataStore = DataStoreService:GetDataStore("CocoonStats")
 local DEFAULT_DATA = {
     silk = 0,
     silkWorms = 0,
-    flatSilk = 25849,
-    crit_chance = 0.05
+    flatSilk = 50,
+    critChance = 0.05,
+    critBonus = 2
 }
 
 Players.PlayerAdded:Connect(function(player)
