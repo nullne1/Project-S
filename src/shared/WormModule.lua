@@ -1,82 +1,35 @@
-local TweenService = game:GetService("TweenService")
-local ServerStorage = game:GetService("ServerStorage")
-
-local CocoonStart = ServerStorage.BindableEvents.CocoonStart
-local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
-local WormFoundTree = ServerStorage.BindableEvents.WormFoundTree
-
-local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
-
 local Worm = {};
 
 Worm.__index = Worm
 
-function Worm.new(name, speed, spawnCFrame, farm, player)
+function Worm.new(type, speed, spawnCFrame, farm, player)
 	local self = setmetatable({}, Worm)
 	
-	self.Name = name
+	self.Type = type
 	self.Speed = speed
 	self.SpawnCFrame = spawnCFrame
 	self.Farm = farm
 	self.Player = player
 
-	self.WormBody = ServerStorage.Worms.BasicWorm:Clone()
+	self.WormBody = game:GetService("ServerStorage").Worms.BasicWorm:Clone()
     self.WormBody.CFrame = self.SpawnCFrame
-	
-	treeArray = self.Farm.Trees:GetChildren()
-
-	local indexArray = {}
-	for i = 1, #treeArray, 1 do
-		indexArray[i] = i
-	end
-
-	for i = 1, #treeArray, 1 do
-		-- pick a random tree's indexes, then delete its index so it doesn't get picked again in the case that the tree is dead
-		local randomIndexIndex = math.random(1, #indexArray)
-		local randomIndex = indexArray[randomIndexIndex]
-		table.remove(indexArray, randomIndexIndex)
-		treeModel = treeArray[randomIndex]
-		local treeData = TreeRegistry[treeModel]
-		if (treeData["uses"] > 0) then
-			treeData["uses"] -= 1
-			self.TreeModule = treeData["module"]
-			self.TargetTree = self.TreeModule.Model
-			break
-		end
-	end
 
 	return self
 end
 
-function Worm:start()
-	-- looks for available tree, if not found then stop execution
-	if (not self.TreeModule) then
-		print("no available tree found")
-		setmetatable(self, nil)
-    	table.clear(self)
-	else
-		self.WormBody.Parent = workspace.Assets.Parts.Worms
-		CocoonFinished.Event:Connect(function(finishedWormBody)
-			if (finishedWormBody == self.WormBody) then
-				self.WormBody:Destroy()
-				setmetatable(self, nil)
-    			table.clear(self)
-			end
-		end)
-		self:goToLeaf()
-		self:pupate()
-	end
+function Worm:despawn()
+	self.WormBody:Destroy()
+    setmetatable(self, nil)
+    table.clear(self)
 end
 
 function Worm:pupate()
+	local TweenService = game:GetService("TweenService")
 	local linearTweenInfo = TweenInfo.new(
 		0.2,
 		Enum.EasingStyle.Linear,
 		Enum.EasingDirection.In
 	)
-
-	-- fire cocoon event
-	CocoonStart:Fire(self.WormBody, self.Farm, self.Player, self.TargetTree)
 
 	-- makes worm look in different directions, mimicing pupating
 	local pupateGoal = {}
@@ -98,6 +51,7 @@ function Worm:pupate()
 end
 
 function Worm:goToLeaf()
+	local TweenService = game:GetService("TweenService")
 	local wormSize = self.WormBody.Size.Y
 
 	local trunk = self.TargetTree.Trunk
@@ -145,11 +99,6 @@ end
 function Worm:findBranch()
 	local branches = self.TargetTree.Trunk:GetChildren()
 	return branches[math.random(1, #branches)]
-end
-
-function Worm:createWorm()
-	self.WormBody = ServerStorage.Worms.BasicWorm:Clone()
-    self.WormBody.CFrame = self.SpawnCFrame
 end
 
 return Worm

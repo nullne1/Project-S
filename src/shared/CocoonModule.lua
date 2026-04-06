@@ -1,10 +1,9 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
+function Cocoon.new(spawnCFrame, farm, player, targetTree)
     local self = setmetatable({}, Cocoon)
-
-    self.WormBody = wormBody
+	
     self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
@@ -13,7 +12,6 @@ function Cocoon.new(wormBody, spawnCFrame, farm, player, targetTree)
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = self.SpawnCFrame
-	self.CanBeCollected = false
 
     return self
 end
@@ -77,12 +75,9 @@ function Cocoon:spinCocoon()
 
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()
-
-	self:launch()
-	self.CanBeCollected = true
 end
 
-function Cocoon:Despawn()
+function Cocoon:despawn()
 	self.Ball:Destroy()
 	setmetatable(self, nil)
     table.clear(self)

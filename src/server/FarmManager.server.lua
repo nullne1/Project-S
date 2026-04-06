@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
 
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
 local TreeModule = require(ReplicatedStorage.Shared.TreeModule)
@@ -12,10 +13,10 @@ local farmsFolder = workspace.Assets.Parts.Farms
 local treeTemplates = ServerStorage.Trees:GetChildren()
 
 local rng = Random.new()
-local MAX_TREES_PER_ZONE = 50
+local MAX_TREES_PER_ZONE = 10
 local MIN_SPACING = 10	
 
-function zoneSetup() 
+local function zoneSetup() 
 	local farmDict = {}
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
     	-- creates a zone based on farmArea part
@@ -37,6 +38,17 @@ function zoneSetup()
 		farmZone.playerExited:Connect(function(player)
 			playerExitedFarm:Fire(player, farm)
 		end)
+	end
+end
+
+local function spawnTreeTween(model)
+	local spawnTween
+	for _, part in pairs(model:GetDescendants()) do
+		-- Check if it's a part that can have transparency
+		if part:IsA("BasePart") or part:IsA("MeshPart") then
+			spawnTween = TweenService:Create(part, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Transparency = 0})
+			spawnTween:Play()
+		end
 	end
 end
 
@@ -79,7 +91,7 @@ end
 
 local activeTrees = {}
 
-function spawnInitialTrees()
+local function spawnInitialTrees()
 	-- make load time depend on if every zone is fully filled by making dictionary of zones with true or false
 	local duration = 5
 	local start_time = os.time()
@@ -108,6 +120,8 @@ function spawnInitialTrees()
 
 					-- Create the object using our OOP module
 					local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
+					spawnTreeTween(newTree.Model)
+					
 					-- Store it in our tracking table
 					table.insert(currentZoneTrees, newTree)
 				end
@@ -146,6 +160,7 @@ local function replaceTree(farm)
             local finalCFrame = CFrame.new(spawnPos) * originalRotation
             
             local newTree = TreeModule.new(template, finalCFrame, farmFloor.Parent)
+			spawnTreeTween(newTree.Model)
             table.insert(currentZoneTrees, newTree)
         end
 		if os.time() >= end_time then
@@ -155,7 +170,7 @@ local function replaceTree(farm)
 	end
 end
 
-function farmSetup()
+local function farmSetup()
 	zoneSetup()
 	spawnInitialTrees()
 	TreeDespawned.Event:Connect(replaceTree)
