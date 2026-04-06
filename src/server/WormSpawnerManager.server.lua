@@ -7,7 +7,7 @@ local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnter
 local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
 		
 
-function setupSpawner(spawner : Model) : nil
+function setupSpawner(spawner)
     local playerCurrentFarm = {} 
     -- 1. Track who is inside which farm
 
