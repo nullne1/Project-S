@@ -32,7 +32,6 @@ end
 
 function PlayerData.addWorm(player, type)
     sessionData[player.UserId]["silkWorms"][type] += 1
-    print(sessionData[player.UserId]["silkWorms"][type])
 end
 
 function PlayerData.addSilk(player, amount)

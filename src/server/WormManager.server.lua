@@ -12,6 +12,7 @@ local CocoonStart = game:GetService("ServerStorage").BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local SpawnReady = ServerStorage.BindableEvents.SpawnReady
 local playerCooldowns = {}
+local activeWorms = {}
 
 local function getWorm(player)
     local availableWorms = PlayerData.getBasicData(player, "silkWorms")
@@ -59,18 +60,51 @@ local function startWorm(spawner, player, farm)
         -- all conditions are met, spawn worm
         PlayerData.useWorm(player, wormType)
         treeData["uses"] -= 1
+
+        -- spawn worm and insert
         local worm = WormModule.new(wormType, 2, spawner.Handle.CFrame, farm, player)
         worm.TargetTree = treeModule.Model
-		worm.WormBody.Parent = workspace.Assets.Parts.Worms
-		CocoonFinished.Event:Connect(function(finishedWormBody)
+        worm.WormBody.Parent = workspace.Assets.Parts.Worms
+
+        if not activeWorms[player] then
+            activeWorms[player] = {}
+        end
+        table.insert(activeWorms[player], worm)
+
+        -- on cocoon finished, despawn worm and remove it from activeWorms
+        local cocoonConnection
+		cocoonConnection = CocoonFinished.Event:Connect(function(finishedWormBody)
 			if (finishedWormBody == worm.WormBody) then
-				worm:despawn()
-			end
+
+                -- loops backwards through player's worms and searches for the worm that finished
+                local playerWorms = activeWorms[player]
+                if playerWorms then
+                    for i = #playerWorms, 1, -1 do
+                        if playerWorms[i] == worm then
+                            table.remove(playerWorms, i)
+                            break -- Stop searching once we find and delete it
+                        end
+                    end
+                end
+                -- despawn worm
+                if (worm) then
+				    worm:despawn()
+                end
+                -- break connection
+                if cocoonConnection then
+                    cocoonConnection:Disconnect()
+                    cocoonConnection = nil
+                end
+            end
 		end)
+
+        -- run tweens on separate thread
         task.spawn(function()
-            worm:goToLeaf()
-            CocoonStart:Fire(wormType, worm.WormBody, worm.Farm, worm.Player, worm.TargetTree)
-            worm:pupate()
+            if (worm) then
+                worm:goToLeaf()
+                CocoonStart:Fire(wormType, worm.WormBody, worm.Farm, worm.Player, worm.TargetTree)
+                worm:pupate()
+            end
         end)
 	else
         if (not treeModule) then
@@ -150,9 +184,30 @@ local function setupSpawner(spawner)
 
     -- Clean up if they leave the game entirely
     game.Players.PlayerRemoving:Connect(function(player)
+        local playerWorms = activeWorms[player]
+        
+        if playerWorms then
+            -- 1. Loop backwards (always best practice when destroying lists)
+            for i = #playerWorms, 1, -1 do
+                local wormObject = playerWorms[i]
+                
+                -- 2. DEFENSIVE CHECK: Is this a real object, and does it actually have a despawn method?
+                if type(wormObject) == "table" and wormObject.despawn then
+                    wormObject:despawn()
+                end
+                
+                -- 3. Safely delete the slot, whether it was an empty shell or a real worm
+                table.remove(playerWorms, i)
+            end
+        end
+        
+        -- 4. completely erase the player's key from the global dictionary
+        activeWorms[player] = nil
         playerCurrentFarm[player] = nil
     end)
 end
+
+
 
 
 CollectionService:GetInstanceAddedSignal("WormSpawner"):Connect(setupSpawner)
