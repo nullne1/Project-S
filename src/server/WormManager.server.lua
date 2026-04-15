@@ -8,9 +8,11 @@ local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 
 local playerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local playerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
-local CocoonStart = game:GetService("ServerStorage").BindableEvents.CocoonStart
+local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local SpawnReady = ServerStorage.BindableEvents.SpawnReady
+
+
 local playerCooldowns = {}
 local activeWorms = {}
 
@@ -63,6 +65,7 @@ local function startWorm(spawner, player, farm)
 
         -- spawn worm and insert
         local worm = WormModule.new(wormType, 2, spawner.Handle.CFrame, farm, player)
+        PlayerData.assignEntityToPlayer(player, worm.WormBody)
         worm.TargetTree = treeModule.Model
         worm.WormBody.Parent = workspace.Assets.Parts.Worms
 

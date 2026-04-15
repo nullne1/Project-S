@@ -7,7 +7,9 @@ local TreeRegistry = require(ReplicatedStorage.Shared.TreeRegistry)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
-local CollectSilk = ReplicatedStorage.RemoteEvents.CollectSilk
+
+local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
+local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
 
 local function calculateFinalSilk(player)
     local flatSilk = PlayerData.getBasicData(player, "flatSilk")
@@ -28,6 +30,7 @@ end
 
 CocoonStart.Event:Connect(function(type, wormBody, farm, player, targetTree)
     local cocoon = CocoonModule.new(wormBody.CFrame, farm, player, targetTree)
+    PlayerData.assignEntityToPlayer(player, cocoon.Ball)
     local treeData = TreeRegistry[targetTree]
 
     -- detect if cocoon is last
@@ -46,13 +49,13 @@ CocoonStart.Event:Connect(function(type, wormBody, farm, player, targetTree)
     cocoon.Ball.Touched:Connect(function(part)
         if (notCollected and canBeCollected and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(player)) then
             notCollected = false
-
+            
             -- calculate final silk amount from player data
             local finalSilkInfo = calculateFinalSilk(player)
             PlayerData.addWorm(player, type)
             PlayerData.addSilk(player, finalSilkInfo["finalSilk"])
             
-            CollectSilk:FireClient(player, cocoon.Ball.Position, finalSilkInfo)
+            CollectedSilk:FireClient(player, cocoon.Ball.Position, finalSilkInfo)
             cocoon:despawn()
         end
     end)

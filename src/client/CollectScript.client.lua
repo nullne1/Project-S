@@ -1,10 +1,16 @@
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local billboardText = ReplicatedStorage.Assets.BillboardText
-local CollectSilk = ReplicatedStorage.RemoteEvents.CollectSilk
+local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
-CollectSilk.OnClientEvent:Connect(function(startPos, silkInfo)
+local localPlayer = Players.LocalPlayer
+local silkText = localPlayer.PlayerGui:WaitForChild("MainGui").SilkText
+
+CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
+    silkText.Text += silkInfo["finalSilk"]
+
     -- float text
     local tempPart = Instance.new("Part")
     tempPart.Anchored = true
@@ -45,7 +51,7 @@ CollectSilk.OnClientEvent:Connect(function(startPos, silkInfo)
     )
 
     local randDiff= math.random(-5, 5)
-    local endPos = Vector3.new(startPos.X, startPos.Y + 5, startPos.Z + randDiff)
+    local endPos = Vector3.new(startPos.X + randDiff, startPos.Y + 5, startPos.Z + randDiff)
     -- size tween
     local billboardTextTween
     local silkTextTween

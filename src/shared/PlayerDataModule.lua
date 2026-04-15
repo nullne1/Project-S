@@ -1,5 +1,10 @@
 PlayerData = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local UsedWorm = ReplicatedStorage.RemoteEvents.UsedWorm
+local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
+
 local sessionData = {}
 
 -- GETTER: Access data safely using the player objec
@@ -17,6 +22,11 @@ function PlayerData.removeData(player)
     sessionData[player.UserId] = nil
 end
 
+function PlayerData.assignEntityToPlayer(player, entity)
+    local playerTag = "OwnedBy_" .. tostring(player.UserId)
+    game:GetService("CollectionService"):AddTag(entity, playerTag)
+end
+
 function PlayerData.getBasicData(player, data)
     local data = sessionData[player.UserId][data]
     if (data) then
@@ -28,10 +38,12 @@ end
 
 function PlayerData.useWorm(player, type)
     sessionData[player.UserId]["silkWorms"][type] -= 1
+    UsedWorm:FireClient(player, type)
 end
 
 function PlayerData.addWorm(player, type)
     sessionData[player.UserId]["silkWorms"][type] += 1
+    CollectedWorm:FireClient(player)
 end
 
 function PlayerData.addSilk(player, amount)

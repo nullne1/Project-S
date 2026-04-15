@@ -1,5 +1,6 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
+local CollectionService = game:GetService("CollectionService")
 
 local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDataModule)
 
@@ -30,11 +31,21 @@ Players.PlayerAdded:Connect(function(player)
     elseif success and result then
         result["silkWorms"] = table.clone(result["peristentWorms"])
         PlayerData.setData(player, result)
-        print("Loaded data for " .. player.UserId)
+
+        local MainGui = player.PlayerGui:WaitForChild("MainGui")
+
+        local SilkText = MainGui.SilkText
+        local WormsText = MainGui.WormsText
+
+        SilkText.Text = result["silk"]
+        WormsText.Text = result["silkWorms"]["basicWorm"]
+
+        print("Loaded existing data for " .. player.UserId)
     else
         warn("Failed to load data for", player.Name)
         player:Kick("Data load failed. Please rejoin.")
     end
+    -- print playerdata
     -- local success, errorMessage = pcall(function()
     --     -- Ask Roblox for the first "page" of keys
     --     local pages = DataStore:ListKeysAsync()
@@ -66,7 +77,17 @@ Players.PlayerAdded:Connect(function(player)
     -- end)
 end)
 
+local function removePlayerEntities(player)
+    local playerTag = "OwnedBy_" .. tostring(player.UserId)
+    local playerEntities = CollectionService:GetTagged(playerTag)
+    
+    for index, entity in ipairs(playerEntities) do
+        entity:Destroy()
+    end
+end
+
 Players.PlayerRemoving:Connect(function(player)
+    removePlayerEntities(player)
     local key = "User_" .. player.UserId
     local success, err = pcall(function()
 		DataStore:SetAsync(key, PlayerData.getData(player))
