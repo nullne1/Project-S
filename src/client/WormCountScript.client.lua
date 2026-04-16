@@ -8,11 +8,11 @@ local UsedWorm = ReplicatedStorage.RemoteEvents.UsedWorm
 local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
 
 UsedWorm.OnClientEvent:Connect(function()
-    wormsText.Text -= 0.5
+    wormsText.Text -= 1
 end)
 
 CollectedWorm.OnClientEvent:Connect(function()
-    wormsText.Text += 0.5
+    wormsText.Text += 1
 end)
 
 

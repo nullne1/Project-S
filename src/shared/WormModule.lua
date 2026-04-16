@@ -11,7 +11,7 @@ function Worm.new(type, speed, spawnCFrame, farm, player)
 	self.Farm = farm
 	self.Player = player
 
-	self.WormBody = game:GetService("ServerStorage").Worms.BasicWorm:Clone()
+	self.WormBody = game:GetService("ServerStorage").Worms.BasicWorm:Clone().Body
     self.WormBody.CFrame = self.SpawnCFrame
 
 	return self

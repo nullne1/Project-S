@@ -15,6 +15,7 @@ local treeTemplates = ServerStorage.Trees:GetChildren()
 local rng = Random.new()
 local MAX_TREES_PER_ZONE = 10
 local MIN_SPACING = 10	
+local TREE_DROP_RADIUS = 10
 
 local function zoneSetup() 
 	local farmDict = {}
@@ -55,7 +56,7 @@ end
 local function getRandomPointInCylinder(farmFloor)
 	-- SWAPPED AXES for a flat Roblox Cylinder: 
 	-- Y is now used for the wide radius
-	local radius = farmFloor.Size.Y / 2 
+	local radius = farmFloor.Size.Y / 2 - TREE_DROP_RADIUS
 
 	local angle = rng:NextNumber() * math.pi * 2
 	local dist = radius * math.sqrt(rng:NextNumber())

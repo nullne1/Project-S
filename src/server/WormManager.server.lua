@@ -45,7 +45,7 @@ local function findTree(farm)
 		table.remove(indexArray, randomIndexIndex)
 		local treeModel = treeArray[randomIndex]
 		treeData = TreeRegistry[treeModel]
-		if (treeData["uses"] > 0) then
+		if (treeData and treeData["uses"] > 0) then
 			treeModule = treeData["module"]
             foundTreeData = treeData
 			break
