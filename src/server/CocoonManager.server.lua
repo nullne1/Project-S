@@ -29,7 +29,7 @@ local function calculateFinalSilk(player)
 end
 
 CocoonStart.Event:Connect(function(type, wormBody, farm, player, targetTree)
-    local cocoon = CocoonModule.new(wormBody.CFrame, farm, player, targetTree)
+    local cocoon = CocoonModule.new(wormBody.Body.CFrame, farm, player, targetTree)
     PlayerData.assignEntityToPlayer(player, cocoon.Ball)
     local treeData = TreeRegistry[targetTree]
 

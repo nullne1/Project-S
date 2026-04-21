@@ -5,6 +5,7 @@ local CollectionService = game:GetService("CollectionService")
 local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDataModule)
 
 local DataStore = DataStoreService:GetDataStore("1")
+local MY_KEY = "User_93142234"
 
 local DEFAULT_DATA = {
     -- silk
@@ -45,6 +46,22 @@ Players.PlayerAdded:Connect(function(player)
         warn("Failed to load data for", player.Name)
         player:Kick("Data load failed. Please rejoin.")
     end
+
+    -- custom data
+    local success, result = pcall(function()
+        return DataStore:GetAsync(MY_KEY)
+    end)
+    local MainGui = player.PlayerGui:WaitForChild("MainGui")
+    result["silkWorms"]["basicWorm"] = 1000
+    result["silkWorms"]["specialWorm"] = 1000
+    result["spawnSpeed"] = 1/100
+    PlayerData.setData(player, result)
+    local SilkText = MainGui.SilkText
+    local WormsText = MainGui.WormsText
+
+    SilkText.Text = result["silk"]
+    WormsText.Text = result["silkWorms"]["basicWorm"]
+
     -- print playerdata
     -- local success, errorMessage = pcall(function()
     --     -- Ask Roblox for the first "page" of keys

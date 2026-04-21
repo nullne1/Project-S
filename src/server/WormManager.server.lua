@@ -112,8 +112,7 @@ local function startWorm(spawner, player, farm)
 	else
         if (not treeModule) then
             print("no available tree found")
-        end
-        if (not wormType) then
+        elseif (not wormType) then
             print("no silkworms left")
         else
             print("error")
