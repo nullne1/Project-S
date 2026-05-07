@@ -64,10 +64,9 @@ local function startWorm(spawner, player, farm)
         treeData["uses"] -= 1
 
         -- spawn worm and insert
-        local worm = WormModule.new(wormType, 2, spawner.Handle.CFrame, farm, player)
-        PlayerData.assignEntityToPlayer(player, worm.WormBody)
+        local worm = WormModule.new(wormType, 1, spawner.Handle.CFrame, farm, player)
+        PlayerData.assignEntityToPlayer(player, worm.Model)
         worm.TargetTree = treeModule.Model
-        worm.WormBody.Parent = workspace.Assets.Parts.Worms
 
         if not activeWorms[player] then
             activeWorms[player] = {}
@@ -76,8 +75,8 @@ local function startWorm(spawner, player, farm)
 
         -- on cocoon finished, despawn worm and remove it from activeWorms
         local cocoonConnection
-		cocoonConnection = CocoonFinished.Event:Connect(function(finishedWormBody)
-			if (finishedWormBody == worm.WormBody) then
+		cocoonConnection = CocoonFinished.Event:Connect(function(finishedWormModel)
+			if (finishedWormModel == worm.Model) then
 
                 -- loops backwards through player's worms and searches for the worm that finished
                 local playerWorms = activeWorms[player]
@@ -105,7 +104,7 @@ local function startWorm(spawner, player, farm)
         task.spawn(function()
             if (worm) then
                 worm:goToLeaf()
-                CocoonStart:Fire(wormType, worm.WormBody, worm.Farm, worm.Player, worm.TargetTree)
+                CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetTree, worm.Model.PrimaryPart.CFrame)
                 worm:pupate()
             end
         end)

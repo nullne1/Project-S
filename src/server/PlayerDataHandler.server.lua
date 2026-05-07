@@ -54,7 +54,7 @@ Players.PlayerAdded:Connect(function(player)
     local MainGui = player.PlayerGui:WaitForChild("MainGui")
     result["silkWorms"]["basicWorm"] = 1000
     result["silkWorms"]["specialWorm"] = 1000
-    result["spawnSpeed"] = 1/100
+    result["spawnSpeed"] = 1/10
     PlayerData.setData(player, result)
     local SilkText = MainGui.SilkText
     local WormsText = MainGui.WormsText

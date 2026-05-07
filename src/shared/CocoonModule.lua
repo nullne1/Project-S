@@ -1,17 +1,16 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(spawnCFrame, farm, player, targetTree)
+function Cocoon.new(wormModel, farm, player, targetTree, wormCFrame)
     local self = setmetatable({}, Cocoon)
 	
-    self.SpawnCFrame = spawnCFrame
     self.Farm = farm
     self.Player = player
 	self.TargetTree = targetTree
 	self.Ball = game:GetService("ServerStorage").Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
-    self.Ball.CFrame = self.SpawnCFrame
+    self.Ball.CFrame = wormCFrame
 
     return self
 end
