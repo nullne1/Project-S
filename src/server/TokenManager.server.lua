@@ -4,13 +4,26 @@ local TokenManager = {}
 TokenManager.ActiveTokens = {} -- THE DICTIONARY
 
 local TokenModule = require(ReplicatedStorage.Shared.TokenModule)
+local TokenRegistry = require(ReplicatedStorage.Shared.GameData.TokenRegistry)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 
-CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wormCFrame)
-    local token = TokenModule.new(wormCFrame, farm, player)
-    TokenManager.ActiveTokens[token.Model] = token
-    token:rise()
+CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wormCFrame, tokenSkills)
+    local tokenSkill
+    for key, value in pairs(tokenSkills) do
+        local rng = math.random()
+        -- if token ability is chosen and has lower chance than a previously chosen ability, choose that ability
+        if (rng <= value and tokenSkill and value < tokenSkills[tokenSkill]) then
+            tokenSkill = key
+        elseif (rng <= value) then
+            tokenSkill = key
+        end
+    end
+    if (tokenSkill) then
+        local token = TokenModule.new(wormCFrame, farm, player, tokenSkill)
+        TokenManager.ActiveTokens[token.Model] = token
+        token:rise()
+    end
 end)
 
 local CollectedToken = ReplicatedStorage.RemoteEvents:WaitForChild("CollectedToken")
@@ -22,10 +35,15 @@ CollectedToken.OnServerEvent:Connect(function(player, tokenModel)
     if tokenObject and tokenObject.IsActive and tokenObject.Player == player then
         -- Flip the kill switch
         tokenObject.IsActive = false 
-        
-        -- Give the reward
-        local PlayerData = require(game.ReplicatedStorage.Shared.PlayerDataModule)
-        PlayerData.addSilk(player, 5) 
+
+        -- Activate its ability
+        local abilityFunction = TokenRegistry.Abilities[tokenObject.Type]
+            
+        if abilityFunction then
+            abilityFunction(player, tokenObject.Farm, tokenObject.Model.Position)
+        else
+            warn("No ability found for token type: " .. tostring(tokenObject.Type))
+        end
         
         -- Clean up the Token and remove it from our dictionary
         tokenObject:despawn()

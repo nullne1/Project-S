@@ -3,8 +3,9 @@ local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local WormModule = require(game:GetService("ReplicatedStorage").Shared.WormModule)
-local TreeRegistry = require(ReplicatedStorage.Shared.TreeRegistry)
+local TreeRegistry = require(ReplicatedStorage.Shared.GameData.TreeRegistry)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
+local WormRegistry = require(ReplicatedStorage.Shared.GameData.WormRegistry)
 
 local playerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local playerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
@@ -104,7 +105,7 @@ local function startWorm(spawner, player, farm)
         task.spawn(function()
             if (worm) then
                 worm:goToLeaf()
-                CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetTree, worm.Model.PrimaryPart.CFrame)
+                CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetTree, worm.Model.PrimaryPart.CFrame, WormRegistry.Worms[wormType]["TokenSkills"])
                 worm:pupate()
             end
         end)
@@ -182,6 +183,7 @@ local function setupSpawner(spawner)
         end
     end)
     spawner.Deactivated:Connect(function() releasedPress = true end)
+    spawner.Unequipped:Connect(function() releasedPress = true end)
 
     -- Clean up if they leave the game entirely
     game.Players.PlayerRemoving:Connect(function(player)

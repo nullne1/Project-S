@@ -3,7 +3,7 @@ local TweenService = game:GetService("TweenService")
 
 local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
 
-local TreeRegistry = require(game.ReplicatedStorage.Shared:WaitForChild("TreeRegistry"))
+local TreeRegistry = require(game.ReplicatedStorage.Shared.GameData.TreeRegistry)
 
 local Tree = {}
 Tree.__index = Tree

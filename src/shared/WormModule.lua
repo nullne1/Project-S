@@ -110,7 +110,7 @@ function Worm:goToLeaf()
 	local branch = self:findBranch()
 	local leaf = branch.Leaf
 
-	local floorPos = self.Farm.Floor.Position.Y + wormSize
+	local floorPos = self.Farm.Floor.Position.Y + wormSize + 0.5
 	
 	-- Get current position from the PrimaryPart
 	local wormPos = primaryPart.Position
@@ -139,7 +139,7 @@ function Worm:goToLeaf()
 
 	-- Target CFrames
 	local floorTargetCFrame = CFrame.new(Vector3.new(wormPos.X, floorPos, wormPos.Z)) * currentRotation
-	local trunkTargetCFrame = CFrame.new(Vector3.new(trunk.Position.X, 1, trunk.Position.Z) - wormFrontVector) * currentRotation
+	local trunkTargetCFrame = CFrame.new(Vector3.new(trunk.Position.X, wormPos.Y - 2, trunk.Position.Z) - wormFrontVector) * currentRotation
 	local leafTargetCFrame = CFrame.new(Vector3.new(leaf.Position.X, leaf.Position.Y + leaf.Size.X - 0.25, leaf.Position.Z)) * currentRotation
 
 	-- Tween 1: Floor

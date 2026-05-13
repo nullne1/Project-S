@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CocoonModule = require(game:GetService("ReplicatedStorage").Shared.CocoonModule)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
-local TreeRegistry = require(ReplicatedStorage.Shared.TreeRegistry)
+local TreeRegistry = require(ReplicatedStorage.Shared.GameData.TreeRegistry)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
