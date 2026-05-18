@@ -7,8 +7,11 @@ TokenRegistry.Abilities = {
         collectRadius.Anchored = true
         collectRadius.CanTouch = false
         collectRadius.CanCollide = false
+        collectRadius.Material = Enum.Material.ForceField
         collectRadius.Size = Vector3.new(farm.FarmArea.Size.X, 10, 10)
-        print(player)
+        collectRadius.CFrame *= CFrame.Angles(0, 0, math.rad(90))
+        collectRadius.Position = tokenPosition
+        collectRadius.Parent = workspace
     end
 }
 
