@@ -59,18 +59,29 @@ function Cocoon:getTargetPos()
 	local radius = math.min(dropAreaSize.Y, dropAreaSize.Z) / 2
 	local angle = math.random() * 2 * math.pi
 	local dist = radius * math.sqrt(math.random())
-	local offsetX = dist * math.cos(angle)
-	local offsetZ = dist * math.sin(angle)
-	return self.TargetTree.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2 - self.Ball.Size.Z + 5.4, offsetX, offsetZ)
+	local offsetY = dist * math.cos(angle)
+    local offsetZ = dist * math.sin(angle)
+	local surfacePointWorldPos = self.TargetTree.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
+	local finalRestingPos = Vector3.new(
+        surfacePointWorldPos.X,
+        surfacePointWorldPos.Y + (self.Ball.Size.Y / 2),
+        surfacePointWorldPos.Z
+    )
+    
+    return finalRestingPos
 end
 
 function Cocoon:spinCocoon()
     local linearTweenInfo = TweenInfo.new(
-        1,
+        0.5,
         Enum.EasingStyle.Linear,
         Enum.EasingDirection.In
 	)
-    local spinCocoonTween = game:GetService("TweenService"):Create(self.Ball, linearTweenInfo, {Transparency = 0})
+    local spinCocoonTween = game:GetService("TweenService"):Create(self.Ball, linearTweenInfo, {
+		Transparency = 0, 
+		Position = Vector3.new(self.Ball.Position.X, self.Ball.Position.Y + 2, self.Ball.Position.Z),
+		Size = Vector3.new(2, 2, 2)
+	})
 
     spinCocoonTween:Play()
     spinCocoonTween.Completed:Wait()

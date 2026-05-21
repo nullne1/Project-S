@@ -41,6 +41,7 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wo
 		treeData["cocoonUses"] -= 1
 		lastCocoon = false
 	end
+        print(treeData)
 
     -- detect player
     local notCollected = true
@@ -64,7 +65,6 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wo
     CocoonFinished:Fire(wormModel)
     cocoon:launch()
     canBeCollected = true
-    
 	if (lastCocoon) then
 		treeData["module"]:Despawn()
 	end

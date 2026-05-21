@@ -67,7 +67,7 @@ local function startWorm(spawner, player, farm)
         -- spawn worm and insert
         local worm = WormModule.new(wormType, 1, spawner.Handle.CFrame, farm, player)
         PlayerData.assignEntityToPlayer(player, worm.Model)
-        worm.TargetTree = treeModule.Model
+        worm.TargetTree = treeModule.Mesh
 
         if not activeWorms[player] then
             activeWorms[player] = {}

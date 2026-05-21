@@ -10,10 +10,10 @@ local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExited
 local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
 
 local farmsFolder = workspace.Assets.Parts.Farms
-local treeTemplates = ServerStorage.Trees:GetChildren()
+local treeTemplates = ServerStorage.Bushes:GetChildren()
 
 local rng = Random.new()
-local MAX_TREES_PER_ZONE = 10
+local MAX_TREES_PER_ZONE = 50
 local MIN_SPACING = 10	
 local TREE_DROP_RADIUS = 10
 
@@ -42,15 +42,9 @@ local function zoneSetup()
 	end
 end
 
-local function spawnTreeTween(model)
-	local spawnTween
-	for _, part in pairs(model:GetDescendants()) do
-		-- Check if it's a part that can have transparency
-		if part:IsA("BasePart") or part:IsA("MeshPart") then
-			spawnTween = TweenService:Create(part, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Transparency = 0})
-			spawnTween:Play()
-		end
-	end
+local function spawnTreeTween(mesh)
+	local spawnTween = TweenService:Create(mesh, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Transparency = 0})
+	spawnTween:Play()
 end
 
 local function getRandomPointInCylinder(farmFloor)
@@ -74,8 +68,9 @@ local function getValidSpawnPoint(zonePart, currentZoneTrees)
 
 	-- Check distance against OTHER trees currently tracked in this zone
 	for _, treeObj in ipairs(currentZoneTrees) do
-		if treeObj.Model and treeObj.Model.PrimaryPart then
-			local distance = (treeObj.Model.PrimaryPart.Position - testPos).Magnitude
+		if treeObj.Mesh then
+
+			local distance = (treeObj.Mesh.Position - testPos).Magnitude
 			if distance < MIN_SPACING then
 				isTooClose = true
 				break
@@ -84,7 +79,7 @@ local function getValidSpawnPoint(zonePart, currentZoneTrees)
 	end
 
 	if not isTooClose then
-		return testPos
+		return Vector3.new(testPos.X, testPos.Y - 3.8, testPos.Z)
 	end
 
 	return nil 
@@ -121,7 +116,7 @@ local function spawnInitialTrees()
 
 					-- Create the object using our OOP module
 					local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
-					spawnTreeTween(newTree.Model)
+					spawnTreeTween(newTree.Mesh)
 					
 					-- Store it in our tracking table
 					table.insert(currentZoneTrees, newTree)
@@ -161,7 +156,7 @@ local function replaceTree(farm)
             local finalCFrame = CFrame.new(spawnPos) * originalRotation
             
             local newTree = TreeModule.new(template, finalCFrame, farmFloor.Parent)
-			spawnTreeTween(newTree.Model)
+			spawnTreeTween(newTree.Mesh)
             table.insert(currentZoneTrees, newTree)
         end
 		if os.time() >= end_time then

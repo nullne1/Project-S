@@ -12,14 +12,28 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	local self = setmetatable({}, Tree)
 
 	-- Setup the physical model
-	self.Model = modelTemplate:Clone()
-	self.Model:PivotTo(spawnCFrame)
+	self.Mesh = modelTemplate:Clone()
+	self.Mesh.Anchored = true
+	self.Mesh.CanCollide = false
+	self.Mesh.CanTouch = false
+	self.Mesh:PivotTo(spawnCFrame)
 	self.Farm = farm
 	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
-	self.Model.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Trees
-	self.Zone = zone
+	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Trees
+
+	self.DropArea = Instance.new("Part")
+	self.DropArea.Name = "DropArea"
+	self.DropArea.Shape = Enum.PartType.Cylinder
+	self.DropArea.Size = Vector3.new(1, 20, 20)
+	self.DropArea.Transparency = 1
+	self.DropArea.CanCollide = false
+	self.DropArea.CanTouch = false
+	self.DropArea.Anchored = true
+	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
+	self.DropArea.Parent = self.Mesh
+
 	self.Uses = 2
-	TreeRegistry[self.Model] = {
+	TreeRegistry[self.Mesh] = {
 		module = self,
 		uses = self.Uses,
 		cocoonUses = self.Uses
@@ -28,17 +42,9 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 end
 
 function Tree:Despawn()
-	local despawnTween
-	for _, part in pairs(self.Model:GetDescendants()) do
-		-- Check if it's a part that can have transparency
-		if part:IsA("BasePart") or part:IsA("MeshPart") then
-			despawnTween = TweenService:Create(part, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Transparency = 1})
-			despawnTween:Play()
-		end
-	end
-	despawnTween.Completed:Wait()
 	TreeDespawned:Fire(self.Farm)
-	self.Model:Destroy()
+	self.Mesh:Destroy()
+	self.DropArea:Destroy()
     setmetatable(self, nil)
     table.clear(self)
 end
