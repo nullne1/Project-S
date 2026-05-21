@@ -93,7 +93,7 @@ function Worm:goToLeaf()
 	-- Get current position from the PrimaryPart
 	local wormPos = primaryPart.Position
 
-	local distance = (Vector3.new(wormPos.X, 0, wormPos.Z) - Vector3.new(self.TargetTree.Position.X, 0, self.TargetTree.Position.Z)).Magnitude
+	local distance = (Vector3.new(wormPos.X, 0, wormPos.Z) - Vector3.new(self.TargetPlant.Position.X, 0, self.TargetPlant.Position.Z)).Magnitude
 	local movementTweenInfo = TweenInfo.new(
 		(distance / 14) / self.Speed,
 		Enum.EasingStyle.Linear,
@@ -106,8 +106,8 @@ function Worm:goToLeaf()
 		Enum.EasingDirection.In
 	)
 
-	-- Rotate the worm to face the tree instantly
-	local lookAtCFrame = CFrame.lookAt(wormPos, Vector3.new(self.TargetTree.CFrame.X, 4, self.TargetTree.CFrame.Z))
+	-- Rotate the worm to face the plant instantly
+	local lookAtCFrame = CFrame.lookAt(wormPos, Vector3.new(self.TargetPlant.CFrame.X, 4, self.TargetPlant.CFrame.Z))
 	lookAtCFrame = lookAtCFrame * CFrame.Angles(0, math.rad(90), 0)
 	primaryPart.CFrame = lookAtCFrame
 	
@@ -117,7 +117,7 @@ function Worm:goToLeaf()
 
 	-- Target CFrames
 	local floorTargetCFrame = CFrame.new(Vector3.new(wormPos.X, floorPos, wormPos.Z)) * currentRotation
-	local trunkTargetCFrame = CFrame.new(Vector3.new(self.TargetTree.Position.X, wormPos.Y - 2, self.TargetTree.Position.Z)) * currentRotation
+	local trunkTargetCFrame = CFrame.new(Vector3.new(self.TargetPlant.Position.X, wormPos.Y - 2, self.TargetPlant.Position.Z)) * currentRotation
 
 	-- Tween 1: Floor
 	local floorTween = TweenService:Create(
@@ -141,7 +141,7 @@ function Worm:goToLeaf()
 end
 
 function Worm:findBranch()
-	local branches = self.TargetTree.Trunk:GetChildren()
+	local branches = self.TargetPlant.Trunk:GetChildren()
 	return branches[math.random(1, #branches)]
 end
 

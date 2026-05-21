@@ -1,15 +1,15 @@
 local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 
-local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
+local PlantDespawned = ServerStorage.BindableEvents.PlantDespawned
 
-local TreeRegistry = require(game.ReplicatedStorage.Shared.GameData.TreeRegistry)
+local PlantRegistry = require(game.ReplicatedStorage.Shared.GameData.PlantRegistry)
 
-local Tree = {}
-Tree.__index = Tree
+local Plant = {}
+Plant.__index = Plant
 
-function Tree.new(modelTemplate, spawnCFrame, farm) : table
-	local self = setmetatable({}, Tree)
+function Plant.new(modelTemplate, spawnCFrame, farm) : table
+	local self = setmetatable({}, Plant)
 
 	-- Setup the physical model
 	self.Mesh = modelTemplate:Clone()
@@ -19,7 +19,7 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	self.Mesh:PivotTo(spawnCFrame)
 	self.Farm = farm
 	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
-	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Trees
+	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Plants
 
 	self.DropArea = Instance.new("Part")
 	self.DropArea.Name = "DropArea"
@@ -33,7 +33,7 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.Parent = self.Mesh
 
 	self.Uses = 2
-	TreeRegistry[self.Mesh] = {
+	PlantRegistry[self.Mesh] = {
 		module = self,
 		uses = self.Uses,
 		cocoonUses = self.Uses
@@ -41,12 +41,12 @@ function Tree.new(modelTemplate, spawnCFrame, farm) : table
 	return self
 end
 
-function Tree:Despawn()
-	TreeDespawned:Fire(self.Farm)
+function Plant:Despawn()
+	PlantDespawned:Fire(self.Farm)
 	self.Mesh:Destroy()
 	self.DropArea:Destroy()
     setmetatable(self, nil)
     table.clear(self)
 end
 
-return Tree
+return Plant

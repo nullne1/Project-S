@@ -1,12 +1,12 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormModel, farm, player, targetTree, wormCFrame)
+function Cocoon.new(wormModel, farm, player, targetPlant, wormCFrame)
     local self = setmetatable({}, Cocoon)
 	
     self.Farm = farm
     self.Player = player
-	self.TargetTree = targetTree
+	self.TargetPlant = targetPlant
 	self.Ball = game:GetService("ServerStorage").Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
@@ -55,13 +55,13 @@ function Cocoon:launch()
 end
 
 function Cocoon:getTargetPos()
-	local dropAreaSize = self.TargetTree.DropArea.Size
+	local dropAreaSize = self.TargetPlant.DropArea.Size
 	local radius = math.min(dropAreaSize.Y, dropAreaSize.Z) / 2
 	local angle = math.random() * 2 * math.pi
 	local dist = radius * math.sqrt(math.random())
 	local offsetY = dist * math.cos(angle)
     local offsetZ = dist * math.sin(angle)
-	local surfacePointWorldPos = self.TargetTree.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
+	local surfacePointWorldPos = self.TargetPlant.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
 	local finalRestingPos = Vector3.new(
         surfacePointWorldPos.X,
         surfacePointWorldPos.Y + (self.Ball.Size.Y / 2),

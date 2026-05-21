@@ -1,2 +1,2 @@
-local TreeRegistry = {}
-return TreeRegistry
+local PlantRegistry = {}
+return PlantRegistry

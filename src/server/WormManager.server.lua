@@ -3,7 +3,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local WormModule = require(game:GetService("ReplicatedStorage").Shared.WormModule)
-local TreeRegistry = require(ReplicatedStorage.Shared.GameData.TreeRegistry)
+local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 local WormRegistry = require(ReplicatedStorage.Shared.GameData.WormRegistry)
 
@@ -28,46 +28,46 @@ local function getWorm(player)
     return nil
 end
 
-local function findTree(farm)
-    -- look for available tree
-    local treeArray = farm.Trees:GetChildren()
-    -- fill array with indexes of treeArray
+local function findPlant(farm)
+    -- look for available plant
+    local plantArray = farm.Plants:GetChildren()
+    -- fill array with indexes of plantArray
 	local indexArray = {}
-	for i = 1, #treeArray, 1 do
+	for i = 1, #plantArray, 1 do
 		indexArray[i] = i
 	end
 
-    local treeModule
-    local foundTreeData
-	for i = 1, #treeArray, 1 do
-		-- pick a random tree's indexes, then delete its index so it doesn't get picked again in the case that the tree is dead
+    local plantModule
+    local foundPlantData
+	for i = 1, #plantArray, 1 do
+		-- pick a random plant's indexes, then delete its index so it doesn't get picked again in the case that the plant is dead
 		local randomIndexIndex = math.random(1, #indexArray)
 		local randomIndex = indexArray[randomIndexIndex]
 		table.remove(indexArray, randomIndexIndex)
-		local treeModel = treeArray[randomIndex]
-		treeData = TreeRegistry[treeModel]
-		if (treeData and treeData["uses"] > 0) then
-			treeModule = treeData["module"]
-            foundTreeData = treeData
+		local plantModel = plantArray[randomIndex]
+		plantData = PlantRegistry[plantModel]
+		if (plantData and plantData["uses"] > 0) then
+			plantModule = plantData["module"]
+            foundPlantData = plantData
 			break
 		end
 	end
 
-    return treeModule, foundTreeData
+    return plantModule, foundPlantData
 end
 
 local function startWorm(spawner, player, farm)
     local wormType = getWorm(player)
-    local treeModule, treeData = findTree(farm)
-    if (treeModule and wormType) then
+    local plantModule, plantData = findPlant(farm)
+    if (plantModule and wormType) then
         -- all conditions are met, spawn worm
         PlayerData.useWorm(player, wormType)
-        treeData["uses"] -= 1
+        plantData["uses"] -= 1
 
         -- spawn worm and insert
         local worm = WormModule.new(wormType, 1, spawner.Handle.CFrame, farm, player)
         PlayerData.assignEntityToPlayer(player, worm.Model)
-        worm.TargetTree = treeModule.Mesh
+        worm.TargetPlant = plantModule.Mesh
 
         if not activeWorms[player] then
             activeWorms[player] = {}
@@ -105,13 +105,18 @@ local function startWorm(spawner, player, farm)
         task.spawn(function()
             if (worm) then
                 worm:goToLeaf()
-                CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetTree, worm.Model.PrimaryPart.CFrame, WormRegistry.Worms[wormType]["TokenSkills"])
+                pcall(function()
+                    local tokenSkills = WormRegistry.Worms[wormType]["TokenSkills"]
+                    if (tokenSkills) then
+                        CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
+                    end
+                end)
                 worm:pupate()
             end
         end)
 	else
-        if (not treeModule) then
-            print("no available tree found")
+        if (not plantModule) then
+            print("no available plant found")
         elseif (not wormType) then
             print("no silkworms left")
         else

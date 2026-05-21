@@ -8,7 +8,7 @@ local TokenRegistry = require(ReplicatedStorage.Shared.GameData.TokenRegistry)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 
-CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wormCFrame, tokenSkills)
+CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, wormCFrame, tokenSkills)
     local tokenSkill
     for key, value in pairs(tokenSkills) do
         local rng = math.random()

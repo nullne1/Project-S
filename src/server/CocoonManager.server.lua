@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CocoonModule = require(game:GetService("ReplicatedStorage").Shared.CocoonModule)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
-local TreeRegistry = require(ReplicatedStorage.Shared.GameData.TreeRegistry)
+local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
@@ -27,21 +27,20 @@ local function calculateFinalSilk(player)
     return finalSilkInfo
 end
 
-CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wormCFrame)
-    local cocoon = CocoonModule.new(wormModel, farm, player, targetTree, wormCFrame)
+CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, wormCFrame)
+    local cocoon = CocoonModule.new(wormModel, farm, player, targetPlant, wormCFrame)
     PlayerData.assignEntityToPlayer(player, cocoon.Ball)
-    local treeData = TreeRegistry[targetTree]
+    local plantData = PlantRegistry[targetPlant]
 
     -- detect if cocoon is last
     local lastCocoon
-    if (treeData["cocoonUses"] == 1) then
-		treeData["cocoonUses"] = 0
+    if (plantData["cocoonUses"] == 1) then
+		plantData["cocoonUses"] = 0
 		lastCocoon = true
 	else
-		treeData["cocoonUses"] -= 1
+		plantData["cocoonUses"] -= 1
 		lastCocoon = false
 	end
-        print(treeData)
 
     -- detect player
     local notCollected = true
@@ -60,12 +59,12 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetTree, wo
         end
     end)
 
-    -- start pupating and despawn tree if its the last
+    -- start pupating and despawn plant if its the last
     cocoon:spinCocoon()
     CocoonFinished:Fire(wormModel)
     cocoon:launch()
     canBeCollected = true
 	if (lastCocoon) then
-		treeData["module"]:Despawn()
+		plantData["module"]:Despawn()
 	end
 end)

@@ -1,7 +1,9 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CollectedToken = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents").CollectedToken
+local CollectedToken = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedToken
+local TokenUsed = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("TokenUsed")
 
 local camera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
@@ -16,6 +18,9 @@ raycastParams.FilterDescendantsInstances = {
     workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
     workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
 }
+TokenUsed.OnClientEvent:Connect(function(tokenPart)
+    table.insert(raycastParams.FilterDescendantsInstances, tokenPart)
+end)
 
 local function checkHover()
     -- Get the current 2D position of the mouse on the screen

@@ -3,14 +3,14 @@ local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
-local TreeModule = require(ReplicatedStorage.Shared.TreeModule)
+local PlantModule = require(ReplicatedStorage.Shared.PlantModule)
 
 local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
 local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
-local TreeDespawned = ServerStorage.BindableEvents.TreeDespawned
+local PlantDespawned = ServerStorage.BindableEvents.PlantDespawned
 
 local farmsFolder = workspace.Assets.Parts.Farms
-local treeTemplates = ServerStorage.Bushes:GetChildren()
+local plantTemplates = ServerStorage.Bushes:GetChildren()
 
 local rng = Random.new()
 local MAX_TREES_PER_ZONE = 50
@@ -42,7 +42,7 @@ local function zoneSetup()
 	end
 end
 
-local function spawnTreeTween(mesh)
+local function spawnPlantTween(mesh)
 	local spawnTween = TweenService:Create(mesh, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Transparency = 0})
 	spawnTween:Play()
 end
@@ -55,22 +55,22 @@ local function getRandomPointInCylinder(farmFloor)
 	local angle = rng:NextNumber() * math.pi * 2
 	local dist = radius * math.sqrt(rng:NextNumber())
 
-	-- X is now used to push the tree up to the flat top surface
+	-- X is now used to push the plant up to the flat top surface
 	-- Y and Z are used for the wide circular spread
 	local offset = Vector3.new(farmFloor.Size.X - 6.4, math.cos(angle) * dist, math.sin(angle) * dist)
 
 	return farmFloor.CFrame * offset
 end
 
-local function getValidSpawnPoint(zonePart, currentZoneTrees)
+local function getValidSpawnPoint(zonePart, currentZonePlants)
 	local testPos = getRandomPointInCylinder(zonePart)
 	local isTooClose = false
 
-	-- Check distance against OTHER trees currently tracked in this zone
-	for _, treeObj in ipairs(currentZoneTrees) do
-		if treeObj.Mesh then
+	-- Check distance against OTHER plants currently tracked in this zone
+	for _, plantObj in ipairs(currentZonePlants) do
+		if plantObj.Mesh then
 
-			local distance = (treeObj.Mesh.Position - testPos).Magnitude
+			local distance = (plantObj.Mesh.Position - testPos).Magnitude
 			if distance < MIN_SPACING then
 				isTooClose = true
 				break
@@ -85,9 +85,9 @@ local function getValidSpawnPoint(zonePart, currentZoneTrees)
 	return nil 
 end
 
-local activeTrees = {}
+local activePlants = {}
 
-local function spawnInitialTrees()
+local function spawnInitialPlants()
 	-- make load time depend on if every zone is fully filled by making dictionary of zones with true or false
 	local duration = 5
 	local start_time = os.time()
@@ -96,33 +96,33 @@ local function spawnInitialTrees()
 		for _, zoneFolder in ipairs(farmsFolder:GetChildren()) do
 			local zone = zoneFolder.Floor
 			-- Ensure a table exists for this zone
-			if not activeTrees[zone] then
-				activeTrees[zone] = {}
+			if not activePlants[zone] then
+				activePlants[zone] = {}
 			end
 
-			local currentZoneTrees = activeTrees[zone]
+			local currentZonePlants = activePlants[zone]
 
-			-- 1. Clean up the table (remove trees that despawned or died)
+			-- 1. Clean up the table (remove plants that despawned or died)
 
-			-- 2. Spawn a new tree if the zone isn't full
-			if #currentZoneTrees < MAX_TREES_PER_ZONE then
-				local spawnPos = getValidSpawnPoint(zone, currentZoneTrees)
+			-- 2. Spawn a new plant if the zone isn't full
+			if #currentZonePlants < MAX_TREES_PER_ZONE then
+				local spawnPos = getValidSpawnPoint(zone, currentZonePlants)
 				if spawnPos then
-					local template = treeTemplates[math.random(1, #treeTemplates)]
+					local template = plantTemplates[math.random(1, #plantTemplates)]
 
-					-- Handle rotation to keep trees upright and varied
+					-- Handle rotation to keep plants upright and varied
 					local originalRotation = template:GetPivot().Rotation
 					local finalCFrame = CFrame.new(spawnPos) * originalRotation
 
 					-- Create the object using our OOP module
-					local newTree = TreeModule.new(template, finalCFrame, zone.Parent)
-					spawnTreeTween(newTree.Mesh)
+					local newPlant = PlantModule.new(template, finalCFrame, zone.Parent)
+					spawnPlantTween(newPlant.Mesh)
 					
 					-- Store it in our tracking table
-					table.insert(currentZoneTrees, newTree)
+					table.insert(currentZonePlants, newPlant)
 				end
 			end
-			--print(#currentZoneTrees)
+			--print(#currentZonePlants)
 		end
 		if os.time() >= end_time then
         	break -- Exit the loop
@@ -131,33 +131,33 @@ local function spawnInitialTrees()
 	end
 end
 
-local function replaceTree(farm)
+local function replacePlant(farm)
     local farmFloor = farm.Floor
     
-    if not activeTrees[farmFloor] then
-        activeTrees[farmFloor] = {}
+    if not activePlants[farmFloor] then
+        activePlants[farmFloor] = {}
     end
     
-    local currentZoneTrees = activeTrees[farmFloor]
-	for i, treeObj in ipairs(currentZoneTrees) do
-		if next(treeObj) == nil then
-			table.remove(currentZoneTrees, i)
+    local currentZonePlants = activePlants[farmFloor]
+	for i, plantObj in ipairs(currentZonePlants) do
+		if next(plantObj) == nil then
+			table.remove(currentZonePlants, i)
 		end
 	end
 
 	local start_time = os.time()
 	local duration = 0.1
 	local end_time = start_time + duration
-	while (#currentZoneTrees < MAX_TREES_PER_ZONE) do
-        local spawnPos = getValidSpawnPoint(farmFloor, currentZoneTrees)
+	while (#currentZonePlants < MAX_TREES_PER_ZONE) do
+        local spawnPos = getValidSpawnPoint(farmFloor, currentZonePlants)
         if spawnPos then
-            local template = treeTemplates[math.random(1, #treeTemplates)]
+            local template = plantTemplates[math.random(1, #plantTemplates)]
             local originalRotation = template:GetPivot().Rotation
             local finalCFrame = CFrame.new(spawnPos) * originalRotation
             
-            local newTree = TreeModule.new(template, finalCFrame, farmFloor.Parent)
-			spawnTreeTween(newTree.Mesh)
-            table.insert(currentZoneTrees, newTree)
+            local newPlant = PlantModule.new(template, finalCFrame, farmFloor.Parent)
+			spawnPlantTween(newPlant.Mesh)
+            table.insert(currentZonePlants, newPlant)
         end
 		if os.time() >= end_time then
         	break -- Exit the loop
@@ -168,8 +168,8 @@ end
 
 local function farmSetup()
 	zoneSetup()
-	spawnInitialTrees()
-	TreeDespawned.Event:Connect(replaceTree)
+	spawnInitialPlants()
+	PlantDespawned.Event:Connect(replacePlant)
 end
 
 farmSetup()
