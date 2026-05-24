@@ -115,7 +115,7 @@ local function spawnInitialPlants()
 					local finalCFrame = CFrame.new(spawnPos) * originalRotation
 
 					-- Create the object using our OOP module
-					local newPlant = PlantModule.new(template, finalCFrame, zone.Parent)
+					local newPlant = PlantModule.new("BasicBush", template, finalCFrame, zone.Parent)
 					spawnPlantTween(newPlant.Mesh)
 					
 					-- Store it in our tracking table
@@ -131,7 +131,7 @@ local function spawnInitialPlants()
 	end
 end
 
-local function replacePlant(farm)
+local function replacePlant(name, spawnCFrame, farm)
     local farmFloor = farm.Floor
     
     if not activePlants[farmFloor] then
@@ -155,7 +155,7 @@ local function replacePlant(farm)
             local originalRotation = template:GetPivot().Rotation
             local finalCFrame = CFrame.new(spawnPos) * originalRotation
             
-            local newPlant = PlantModule.new(template, finalCFrame, farmFloor.Parent)
+            local newPlant = PlantModule.new("BasicBush", template, finalCFrame, farmFloor.Parent)
 			spawnPlantTween(newPlant.Mesh)
             table.insert(currentZonePlants, newPlant)
         end
@@ -165,6 +165,7 @@ local function replacePlant(farm)
 		task.wait()
 	end
 end
+
 
 local function farmSetup()
 	zoneSetup()

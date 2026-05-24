@@ -3,13 +3,16 @@ local TweenService = game:GetService("TweenService")
 
 local PlantDespawned = ServerStorage.BindableEvents.PlantDespawned
 
-local PlantRegistry = require(game.ReplicatedStorage.Shared.GameData.PlantRegistry)
+local PlantRegistry = require(game:GetService("ReplicatedStorage").Shared.GameData.PlantRegistry)
+local PlantDropRegistry = require(game:GetService("ReplicatedStorage").Shared.GameData.PlantDropRegistry)
 
 local Plant = {}
 Plant.__index = Plant
 
-function Plant.new(modelTemplate, spawnCFrame, farm) : table
+function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	local self = setmetatable({}, Plant)
+	self.Name = name
+	self.SpawnCFrame = spawnCFrame
 
 	-- Setup the physical model
 	self.Mesh = modelTemplate:Clone()
@@ -36,13 +39,22 @@ function Plant.new(modelTemplate, spawnCFrame, farm) : table
 	PlantRegistry[self.Mesh] = {
 		module = self,
 		uses = self.Uses,
-		cocoonUses = self.Uses
+		cocoonUses = self.Uses,
+		drops = {PlantDropRegistry.Drops[self.Name]}
 	}
 	return self
 end
 
-function Plant:Despawn()
-	PlantDespawned:Fire(self.Farm)
+function Plant:disappearTween()
+	local TweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+	local DisappearTween = TweenService:Create(self.Mesh, TweenInfo, {Transparency = 1})
+	DisappearTween:Play()
+	DisappearTween.Completed:Wait()
+end
+
+function Plant:Despawn(player)
+	PlantDespawned:Fire(self.Name, self.SpawnCFrame, self.Farm, player)
+	self:disappearTween()
 	self.Mesh:Destroy()
 	self.DropArea:Destroy()
     setmetatable(self, nil)

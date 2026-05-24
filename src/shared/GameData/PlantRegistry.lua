@@ -1,2 +1,3 @@
 local PlantRegistry = {}
+
 return PlantRegistry

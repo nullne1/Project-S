@@ -65,6 +65,6 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, w
     cocoon:launch()
     canBeCollected = true
 	if (lastCocoon) then
-		plantData["module"]:Despawn()
+		plantData["module"]:Despawn(player)
 	end
 end)
