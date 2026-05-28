@@ -22,8 +22,8 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.Mesh:PivotTo(spawnCFrame)
 	self.Farm = farm
 	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
-	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Plants
-
+	
+	
 	self.DropArea = Instance.new("Part")
 	self.DropArea.Name = "DropArea"
 	self.DropArea.Shape = Enum.PartType.Cylinder
@@ -34,8 +34,14 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.Anchored = true
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
-
+	
 	self.Uses = 2
+	self.IncreaseFactorXZ = 8.4 / self.Uses  
+	self.IncreaseFactorY = 7.2 / self.Uses
+
+	self.Mesh.Size = Vector3.new(self.IncreaseFactorXZ, self.IncreaseFactorY, self.IncreaseFactorXZ)
+	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Plants
+
 	PlantRegistry[self.Mesh] = {
 		module = self,
 		uses = self.Uses,
@@ -45,11 +51,22 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	return self
 end
 
+function Plant:depleteUse()
+	local currentSize = self.Mesh.Size
+	local TweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	local ExpandTween = TweenService:Create(self.Mesh, TweenInfo, {Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ, currentSize.Y + self.IncreaseFactorY, currentSize.Z + self.IncreaseFactorXZ)})
+	ExpandTween:Play()
+end
+
 function Plant:disappearTween()
-	local TweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-	local DisappearTween = TweenService:Create(self.Mesh, TweenInfo, {Transparency = 1})
-	DisappearTween:Play()
-	DisappearTween.Completed:Wait()
+	local currentSize = self.Mesh.Size
+	local TweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+	local ExplodeTween = TweenService:Create(self.Mesh, TweenInfo, 
+	{	
+		Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ, currentSize.Y + self.IncreaseFactorY, currentSize.Z + self.IncreaseFactorXZ)
+	})
+	ExplodeTween:Play()
+	ExplodeTween.Completed:Wait()
 end
 
 function Plant:Despawn(player)

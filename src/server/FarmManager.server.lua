@@ -55,9 +55,11 @@ local function getRandomPointInCylinder(farmFloor)
 	local angle = rng:NextNumber() * math.pi * 2
 	local dist = radius * math.sqrt(rng:NextNumber())
 
+	local topSurfaceYOffset = farmFloor.Size.X / 2
+
 	-- X is now used to push the plant up to the flat top surface
 	-- Y and Z are used for the wide circular spread
-	local offset = Vector3.new(farmFloor.Size.X - 6.4, math.cos(angle) * dist, math.sin(angle) * dist)
+	local offset = Vector3.new(topSurfaceYOffset, math.cos(angle) * dist, math.sin(angle) * dist)
 
 	return farmFloor.CFrame * offset
 end
@@ -79,7 +81,7 @@ local function getValidSpawnPoint(zonePart, currentZonePlants)
 	end
 
 	if not isTooClose then
-		return Vector3.new(testPos.X, testPos.Y - 3.8, testPos.Z)
+		return Vector3.new(testPos.X, testPos.Y, testPos.Z)
 	end
 
 	return nil 

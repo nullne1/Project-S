@@ -38,6 +38,7 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, w
 		plantData["cocoonUses"] = 0
 		lastCocoon = true
 	else
+        plantData["module"]:depleteUse()
 		plantData["cocoonUses"] -= 1
 		lastCocoon = false
 	end
