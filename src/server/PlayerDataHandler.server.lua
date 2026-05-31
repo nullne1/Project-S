@@ -16,7 +16,7 @@ local DEFAULT_DATA = {
 
     critChance = 0.05,
     critBonus = 2,
-    spawnSpeed = 1 / 10
+    spawnSpeed = 1 / 20
 }
 
 Players.PlayerAdded:Connect(function(player)
@@ -34,9 +34,9 @@ Players.PlayerAdded:Connect(function(player)
         PlayerData.setData(player, result)
 
         local MainGui = player.PlayerGui:WaitForChild("MainGui")
-
-        local SilkText = MainGui.SilkText
-        local WormsText = MainGui.WormsText
+        -- fix this!! -------------------------------------------------------
+        local SilkText = MainGui.Data.SilkText
+        local WormsText = MainGui.Data.WormsText
 
         SilkText.Text = result["silk"]
         WormsText.Text = result["silkWorms"]["basicWorm"]
@@ -53,11 +53,13 @@ Players.PlayerAdded:Connect(function(player)
     end)
     local MainGui = player.PlayerGui:WaitForChild("MainGui")
     result["silkWorms"]["basicWorm"] = 1000
-    result["silkWorms"]["specialWorm"] = 1000
+    result["silkWorms"]["specialWorm"] = 0
     result["spawnSpeed"] = 1/10
     PlayerData.setData(player, result)
-    local SilkText = MainGui.SilkText
-    local WormsText = MainGui.WormsText
+
+            -- fix this!! -------------------------------------------------------
+    local SilkText = MainGui.Data.SilkText
+    local WormsText = MainGui.Data.WormsText
 
     SilkText.Text = result["silk"]
     WormsText.Text = result["silkWorms"]["basicWorm"]

@@ -168,7 +168,7 @@ local function setupSpawner(spawner)
             local currentTime = os.clock()
             local lastSpawnTime = playerCooldowns[player.UserId] or 0
             local spawnSpeed = PlayerData.getBasicData(player, "spawnSpeed")
-
+            
             -- if time elapsed since time of spawn is greater than spawnSpeed
             if currentTime - lastSpawnTime >= spawnSpeed then
                 

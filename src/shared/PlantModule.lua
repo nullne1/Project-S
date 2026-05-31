@@ -35,11 +35,15 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
 	
-	self.Uses = 2
-	self.IncreaseFactorXZ = 8.4 / self.Uses  
-	self.IncreaseFactorY = 7.2 / self.Uses
+	self.Uses = 20
 
-	self.Mesh.Size = Vector3.new(self.IncreaseFactorXZ, self.IncreaseFactorY, self.IncreaseFactorXZ)
+	local minX = 4.2
+	local minY = 3.2
+
+	self.IncreaseFactorXZ = (8.4 - minX) / self.Uses  
+	self.IncreaseFactorY = (7.2 - minY) / self.Uses
+
+	self.Mesh.Size = Vector3.new(minX, minY, minX)
 	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Plants
 
 	PlantRegistry[self.Mesh] = {
