@@ -4,12 +4,9 @@ local Players = game:GetService("Players")
 
 local billboardText = ReplicatedStorage.Assets.BillboardText
 
-local CollectedDrop = ReplicatedStorage.RemoteEvents.CollectedDrop
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
-CollectedDrop.OnClientEvent:Connect(function(dropMesh)
-    print(dropMesh)
-end)
+local localPlayer = Players.LocalPlayer
 
 CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
 

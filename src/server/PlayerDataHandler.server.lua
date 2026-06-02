@@ -1,8 +1,11 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDataModule)
+local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
+
+local InitializeInventory = ReplicatedStorage:WaitForChild("RemoteEvents").InitializeInventory
 
 local DataStore = DataStoreService:GetDataStore("1")
 local MY_KEY = "User_93142234"
@@ -10,6 +13,7 @@ local MY_KEY = "User_93142234"
 local DEFAULT_DATA = {
     -- silk
     silk = 0,
+    items = {},
     silkWorms = {basicWorm = 10},
     peristentWorms = {basicWorm = 10},
     flatSilk = 50,
@@ -32,11 +36,12 @@ Players.PlayerAdded:Connect(function(player)
     elseif success and result then
         result["silkWorms"] = table.clone(result["peristentWorms"])
         PlayerData.setData(player, result)
+        InitializeInventory:FireClient(player)
 
         local MainGui = player.PlayerGui:WaitForChild("MainGui")
         -- fix this!! -------------------------------------------------------
-        local SilkText = MainGui.Data.SilkText
-        local WormsText = MainGui.Data.WormsText
+        local SilkText = MainGui.DataFrame.SilkText
+        local WormsText = MainGui.DataFrame.WormsText
 
         SilkText.Text = result["silk"]
         WormsText.Text = result["silkWorms"]["basicWorm"]
@@ -58,8 +63,8 @@ Players.PlayerAdded:Connect(function(player)
     PlayerData.setData(player, result)
 
             -- fix this!! -------------------------------------------------------
-    local SilkText = MainGui.Data.SilkText
-    local WormsText = MainGui.Data.WormsText
+    local SilkText = MainGui.DataFrame.SilkText
+    local WormsText = MainGui.DataFrame.WormsText
 
     SilkText.Text = result["silk"]
     WormsText.Text = result["silkWorms"]["basicWorm"]
@@ -110,6 +115,7 @@ Players.PlayerRemoving:Connect(function(player)
     local key = "User_" .. player.UserId
     local success, err = pcall(function()
 		DataStore:SetAsync(key, PlayerData.getData(player))
+        print(PlayerData.getData(player))
 	end)
 	
 	if (not success) then

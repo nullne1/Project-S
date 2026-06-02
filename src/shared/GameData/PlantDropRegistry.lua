@@ -6,4 +6,8 @@ PlantDropRegistry.Drops = {
     }
 }
 
+PlantDropRegistry.DropInfo = {
+    ["Stick"] = 132171463852957
+}
+
 return PlantDropRegistry

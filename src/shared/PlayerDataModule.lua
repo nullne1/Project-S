@@ -2,6 +2,7 @@ PlayerData = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local GetPlayerData = ReplicatedStorage.RemoteFunctions.GetPlayerData
 local UsedWorm = ReplicatedStorage.RemoteEvents.UsedWorm
 local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
 
@@ -9,6 +10,7 @@ local sessionData = {}
 
 -- GETTER: Access data safely using the player objec
 function PlayerData.getData(player)
+    print(sessionData[player.UserId])
     return sessionData[player.UserId]
 end
 
@@ -28,12 +30,20 @@ function PlayerData.assignEntityToPlayer(player, entity)
 end
 
 function PlayerData.getBasicData(player, data)
-    local data = sessionData[player.UserId][data]
-    if (data) then
-        return data
+    local requestedData = sessionData[player.UserId][data]
+    if (requestedData) then
+        return requestedData
     end
 
     return nil
+end
+
+function PlayerData.addItem(player, item)
+    if (item and not sessionData[player.UserId]["items"][item]) then
+        sessionData[player.UserId]["items"][item] = 1
+    elseif (item) then
+        sessionData[player.UserId]["items"][item] += 1
+    end
 end
 
 function PlayerData.useWorm(player, type)
@@ -52,5 +62,11 @@ function PlayerData.addSilk(player, amount)
         data.silk += amount
     end
 end
+
+GetPlayerData.OnServerInvoke = function(player)
+    return sessionData[player.UserId]["items"]
+end
+
+
 
 return PlayerData

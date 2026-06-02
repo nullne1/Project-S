@@ -2,7 +2,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlantDropRegistry = require(ReplicatedStorage.Shared.GameData.PlantDropRegistry)
-local CollectedDrop = ReplicatedStorage.RemoteEvents.CollectedDrop
+local CollectedDrop = ServerStorage.BindableEvents.CollectedDrop
+local UpdateInventory = ReplicatedStorage.RemoteEvents.UpdateInventory
 
 local Drop = {}
 Drop.__index = Drop
@@ -16,6 +17,8 @@ function Drop.new(parent, spawnCFrame, farm, player)
     self.Player = player
 
     local plantDrops = PlantDropRegistry.Drops[self.Parent]
+
+    -- hardcoded my one drop (sticks) for now
 	self.DropMesh = ServerStorage.Drops:FindFirstChild(plantDrops[1], true):Clone()
 	self.DropMesh.Anchored = true
 	self.DropMesh.CFrame = CFrame.new(self.SpawnCFrame.X, self.Farm.Floor.Position.Y, self.SpawnCFrame.Z)
@@ -28,7 +31,8 @@ function Drop.new(parent, spawnCFrame, farm, player)
     self.DropMesh.Touched:Connect(function(otherPart)
         if (not collected and tostring(otherPart.Parent) == tostring(player)) then
             collected = true
-            CollectedDrop:FireClient(player, self.DropMesh)
+            CollectedDrop:Fire(player, self.DropMesh)
+            UpdateInventory:FireClient(player, self.DropMesh.Name)
             self:despawn()
         end
     end)

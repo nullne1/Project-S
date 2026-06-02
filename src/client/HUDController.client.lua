@@ -9,10 +9,22 @@ local InventoryOpened = ReplicatedStorage:WaitForChild("BindableEvents").Invento
 local InventoryClosed = ReplicatedStorage:WaitForChild("BindableEvents").InventoryClosed
 
 local localPlayer = Players.LocalPlayer
+
 local MainGui = localPlayer.PlayerGui:WaitForChild("MainGui")
-local wormsText = MainGui.Data.WormsText
-local silkText = MainGui.Data.SilkText
-local invButton = MainGui.InventoryButton
+local wormsText = MainGui.DataFrame.WormsText
+local silkText = MainGui.DataFrame.SilkText
+local invButton = MainGui.ButtonFrame.InventoryButton
+
+-- local isTouchScreen = UserInputService.TouchEnabled
+-- local hasKeyboard = UserInputService.KeyboardEnabled
+
+-- if isTouchScreen and not hasKeyboard then
+--     print("Player is on a mobile device or tablet!")
+-- end
+
+-- UserInputService.TouchMoved:Connect(function()
+--     print("Hello")
+-- end)
 
 local inventoryIsOpen = false
 invButton.MouseButton1Click:Connect(function()

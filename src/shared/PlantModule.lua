@@ -35,7 +35,7 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
 	
-	self.Uses = 20
+	self.Uses = 5
 
 	local minX = 4.2
 	local minY = 3.2
@@ -67,7 +67,7 @@ function Plant:disappearTween()
 	local TweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 	local ExplodeTween = TweenService:Create(self.Mesh, TweenInfo, 
 	{	
-		Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ, currentSize.Y + self.IncreaseFactorY, currentSize.Z + self.IncreaseFactorXZ)
+		Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ * 4, currentSize.Y + self.IncreaseFactorY * 4, currentSize.Z + self.IncreaseFactorXZ * 4)
 	})
 	ExplodeTween:Play()
 	ExplodeTween.Completed:Wait()
