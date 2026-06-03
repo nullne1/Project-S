@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UsedWorm = ReplicatedStorage:WaitForChild("RemoteEvents").UsedWorm
 local CollectedWorm = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedWorm
 local CollectedSilk = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedSilk
-
 local InventoryOpened = ReplicatedStorage:WaitForChild("BindableEvents").InventoryOpened
 local InventoryClosed = ReplicatedStorage:WaitForChild("BindableEvents").InventoryClosed
 

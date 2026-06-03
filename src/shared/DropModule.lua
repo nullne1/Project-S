@@ -1,10 +1,3 @@
-local ServerStorage = game:GetService("ServerStorage")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local PlantDropRegistry = require(ReplicatedStorage.Shared.GameData.PlantDropRegistry)
-local CollectedDrop = ServerStorage.BindableEvents.CollectedDrop
-local UpdateInventory = ReplicatedStorage.RemoteEvents.UpdateInventory
-
 local Drop = {}
 Drop.__index = Drop
 
@@ -16,31 +9,17 @@ function Drop.new(parent, spawnCFrame, farm, player)
     self.Farm = farm
     self.Player = player
 
-    local plantDrops = PlantDropRegistry.Drops[self.Parent]
+    return self
+end
 
-    -- hardcoded my one drop (sticks) for now
-	self.DropMesh = ServerStorage.Drops:FindFirstChild(plantDrops[1], true):Clone()
-	self.DropMesh.Anchored = true
-	self.DropMesh.CFrame = CFrame.new(self.SpawnCFrame.X, self.Farm.Floor.Position.Y, self.SpawnCFrame.Z)
+function Drop:hover()
+    self.DropMesh.Anchored = true
+	self.DropMesh.CFrame = CFrame.new(self.SpawnCFrame.X + math.random(-2, 2), self.Farm.Floor.Position.Y, self.SpawnCFrame.Z + math.random(-2, 2))
     -- self.DropMesh.CFrame *= CFrame.Angles(self.DropMesh.CFrame.X, math.rad(math.random(0, 360)), self.DropMesh.CFrame.Z)
 	self.DropMesh.Position = Vector3.new(self.DropMesh.Position.X, self.DropMesh.Position.Y + self.DropMesh.Size.X / 2 + 1, self.DropMesh.Position.Z)
 	self.DropMesh.CanCollide = false
 	self.DropMesh.Parent = workspace.Assets.Parts.Drops
 
-    local collected = false
-    self.DropMesh.Touched:Connect(function(otherPart)
-        if (not collected and tostring(otherPart.Parent) == tostring(player)) then
-            collected = true
-            CollectedDrop:Fire(player, self.DropMesh)
-            UpdateInventory:FireClient(player, self.DropMesh.Name)
-            self:despawn()
-        end
-    end)
-
-    return self
-end
-
-function Drop:hover()
     local part = self.DropMesh
     local RunService = game:GetService("RunService")
 

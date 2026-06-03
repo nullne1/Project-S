@@ -6,6 +6,7 @@ TokenManager.ActiveTokens = {} -- THE DICTIONARY
 local TokenModule = require(ReplicatedStorage.Shared.TokenModule)
 local TokenRegistry = require(ReplicatedStorage.Shared.GameData.TokenRegistry)
 
+local CollectedToken = ReplicatedStorage.RemoteEvents.CollectedToken
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 
 CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, wormCFrame, tokenSkills)
@@ -21,14 +22,20 @@ CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, w
     end
     if (tokenSkill) then
         local token = TokenModule.new(wormCFrame, farm, player, tokenSkill)
+        local collected = false
+        token.Model.Touched:Connect(function(otherPart)
+            print("hello")
+            if (not collected and tostring(otherPart.Parent) == tostring(player)) then
+                collected = true
+                activateToken(player, token.Model)
+            end
+        end)
         TokenManager.ActiveTokens[token.Model] = token
-        token:rise()
+        token:appear()
     end
 end)
 
-local CollectedToken = ReplicatedStorage.RemoteEvents:WaitForChild("CollectedToken")
-
-CollectedToken.OnServerEvent:Connect(function(player, tokenModel)
+function activateToken(player, tokenModel)
     -- Grab the OOP Object out of the dictionary using the Model the client sent us
     local tokenObject = TokenManager.ActiveTokens[tokenModel]
     -- DEFENSIVE CHECK: Ensure the token exists, belongs to the player, and hasn't been collected yet
@@ -49,7 +56,9 @@ CollectedToken.OnServerEvent:Connect(function(player, tokenModel)
         tokenObject:despawn()
         TokenManager.ActiveTokens[tokenModel] = nil 
     end
-end)
+end
+
+CollectedToken.OnServerEvent:Connect(activateToken)
 
 
 

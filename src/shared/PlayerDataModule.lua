@@ -10,7 +10,6 @@ local sessionData = {}
 
 -- GETTER: Access data safely using the player objec
 function PlayerData.getData(player)
-    print(sessionData[player.UserId])
     return sessionData[player.UserId]
 end
 

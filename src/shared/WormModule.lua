@@ -107,7 +107,7 @@ function Worm:goToLeaf()
 	)
 
 	-- Rotate the worm to face the plant instantly
-	local lookAtCFrame = CFrame.lookAt(wormPos, Vector3.new(self.TargetPlant.CFrame.X, 4, self.TargetPlant.CFrame.Z))
+	local lookAtCFrame = CFrame.lookAt(wormPos, Vector3.new(self.TargetPlant.CFrame.X, wormPos.Y, self.TargetPlant.CFrame.Z))
 	lookAtCFrame = lookAtCFrame * CFrame.Angles(0, math.rad(90), 0)
 	primaryPart.CFrame = lookAtCFrame
 	
@@ -117,7 +117,7 @@ function Worm:goToLeaf()
 
 	-- Target CFrames
 	local floorTargetCFrame = CFrame.new(Vector3.new(wormPos.X, floorPos, wormPos.Z)) * currentRotation
-	local trunkTargetCFrame = CFrame.new(Vector3.new(self.TargetPlant.Position.X, wormPos.Y - 2, self.TargetPlant.Position.Z)) * currentRotation
+	local trunkTargetCFrame = CFrame.new(Vector3.new(self.TargetPlant.Position.X, floorPos, self.TargetPlant.Position.Z)) * currentRotation
 
 	-- Tween 1: Floor
 	local floorTween = TweenService:Create(

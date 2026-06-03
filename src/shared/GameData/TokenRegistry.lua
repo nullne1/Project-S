@@ -15,6 +15,12 @@ TokenRegistry.Abilities = {
 
     end,
 
+    ["BasicToken"] = function(player, farm, tokenPosition)
+        local finalSilkInfo = calculateFinalSilk(player, "basicToken")
+        PlayerData.addSilk(player, finalSilkInfo["finalSilk"])
+        CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
+    end,
+
     ["CollectToken"] = function(player, farm, tokenPosition)
         local collectRadius = Instance.new("Part")
         collectRadius.Shape = "Cylinder"
@@ -33,8 +39,9 @@ TokenRegistry.Abilities = {
         local collectZone = Zone.new(collectRadius)
         local function processCocoonPart(part)
             if (part.Name == "BasicBall") then
-                local finalSilkInfo = calculateFinalSilk(player)
+                local finalSilkInfo = calculateFinalSilk(player, "collectToken")
                 CollectedSilk:FireClient(player, part.Position, finalSilkInfo)
+                PlayerData.addWorm(player, "basicWorm")
                 part:Destroy()
             end
         end
@@ -80,19 +87,16 @@ TokenRegistry.Abilities = {
             collectRadius:Destroy()
             TweenShape:Destroy()
         end)
-
-
-        
     end
 }
 
-function calculateFinalSilk(player)
+function calculateFinalSilk(player, token)
     local flatSilk = PlayerData.getBasicData(player, "flatSilk")
     local finalSilkInfo = {}
     local finalSilk = math.random(math.ceil(flatSilk - flatSilk * 0.1), math.ceil(flatSilk + flatSilk * 0.1))
 
     local rand = math.random()
-    if (rand <= PlayerData.getBasicData(player, "critChance")) then
+    if (token == "basicToken" or rand <= PlayerData.getBasicData(player, "critChance")) then
         finalSilk += finalSilk * PlayerData.getBasicData(player, "critBonus")
         finalSilkInfo["crit"] = true
     else

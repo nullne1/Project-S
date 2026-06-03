@@ -10,14 +10,14 @@ function Token.new(wormCFrame, farm, player, type)
 
     self.Model = game:GetService("ServerStorage").Tokens:FindFirstChild(self.Type):Clone()
 	self.Model.Parent = workspace.Assets.Parts.Tokens
-    self.Model:PivotTo(CFrame.new(wormCFrame.X, wormCFrame.Y + 6, wormCFrame.Z))
+    self.Model:PivotTo(CFrame.new(wormCFrame.X, wormCFrame.Y + 5.5, wormCFrame.Z))
 	self.Model.Size = Vector3.new(0, 0, 0)
 	self.Model.CFrame *= CFrame.Angles(math.rad(-90), 0, 0)
 
 	-- === THE ANIMATION SETTINGS ===
     -- math.rad(360) means 1 full rotation per second. Multiply it to go faster!
     local spinSpeed = math.rad(360)
-    local floatSpeed = 1 -- Moves up 0.5 studs per second
+    local floatSpeed = 0 -- Moves up 0.5 studs per second
 	local RunService = game:GetService("RunService")
     -- === THE ANIMATION LOOP ===
     self.AnimConnection = RunService.Heartbeat:Connect(function(deltaTime)
@@ -51,16 +51,11 @@ function Token:despawn()
 	table.clear(self)
 end
 
-function Token:rise()
+function Token:appear()
     local TweenService = game:GetService("TweenService")
 
-    local riseTweenInfo = TweenInfo.new(
-        4,
-        Enum.EasingStyle.Linear,
-        Enum.EasingDirection.In
-	)
-	local rotateTweenInfo = TweenInfo.new(
-		3,
+	local disappearTweenInfo = TweenInfo.new(
+		6,
 		Enum.EasingStyle.Linear,
 		Enum.EasingDirection.In
 	)
@@ -73,7 +68,7 @@ function Token:rise()
 
 	local tokenDisappearTween = TweenService:Create(
 		self.Model,
-		rotateTweenInfo,
+		disappearTweenInfo,
 		{Transparency = 1}
 	)
 

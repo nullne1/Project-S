@@ -9,7 +9,7 @@ local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 local localPlayer = Players.LocalPlayer
 
 CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
-
+    
     -- float text
     local tempPart = Instance.new("Part")
     tempPart.Anchored = true
