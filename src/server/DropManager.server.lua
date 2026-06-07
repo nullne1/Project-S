@@ -20,10 +20,10 @@ PlantDespawned.Event:Connect(function(name, spawnCFrame, farm, player)
     -- simulates chance based on drop chances dict and keeps track of the biggest number of drops chosen
     local rng = math.random()
     local counter = 0
-    local awardedAmount
+    local awardedAmount = nil
     for _, dropInfo in dropChances do
         counter += dropInfo["chance"]
-        if rng <= counter then
+        if (rng <= counter) then
             awardedAmount = dropInfo["amount"]
             break
         end

@@ -11,8 +11,11 @@ function Token.new(wormCFrame, farm, player, type)
     self.Model = game:GetService("ServerStorage").Tokens:FindFirstChild(self.Type):Clone()
 	self.Model.Parent = workspace.Assets.Parts.Tokens
     self.Model:PivotTo(CFrame.new(wormCFrame.X, wormCFrame.Y + 5.5, wormCFrame.Z))
-	self.Model.Size = Vector3.new(0, 0, 0)
-	self.Model.CFrame *= CFrame.Angles(math.rad(-90), 0, 0)
+	self.Model.CFrame *= CFrame.Angles(0, math.rad(-90), 0)
+	
+	self.TargetSize = self.Model.Size
+	
+	self.Model.Size = Vector3.new(0.001, 0.001, 0.001)
 
 	-- === THE ANIMATION SETTINGS ===
     -- math.rad(360) means 1 full rotation per second. Multiply it to go faster!
@@ -24,7 +27,7 @@ function Token.new(wormCFrame, farm, player, type)
         -- Safety check to ensure the token hasn't been destroyed
         if self.Model then
             -- 1. Spin it in local space using CFrame.Angles
-            local rotatedCFrame = self.Model.CFrame * CFrame.Angles(0, 0, spinSpeed * deltaTime)
+            local rotatedCFrame = self.Model.CFrame * CFrame.Angles(0, spinSpeed * deltaTime, 0)
             
             -- 2. Move it up in world space by adding a Vector3
             self.Model.CFrame = rotatedCFrame + Vector3.new(0, floatSpeed * deltaTime, 0)
@@ -63,7 +66,7 @@ function Token:appear()
 	local tokenAppearTween = TweenService:Create(
 		self.Model,
 		TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In),
-		{Size = Vector3.new(5, 0.5, 5)}
+		{Size = self.TargetSize}
 	)
 
 	local tokenDisappearTween = TweenService:Create(

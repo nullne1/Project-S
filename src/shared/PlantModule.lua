@@ -27,7 +27,7 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea = Instance.new("Part")
 	self.DropArea.Name = "DropArea"
 	self.DropArea.Shape = Enum.PartType.Cylinder
-	self.DropArea.Size = Vector3.new(1, 20, 20)
+	self.DropArea.Size = Vector3.new(1, 15, 15)
 	self.DropArea.Transparency = 1
 	self.DropArea.CanCollide = false
 	self.DropArea.CanTouch = false
@@ -35,7 +35,7 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
 	
-	self.Uses = 10
+	self.Uses = math.huge
 
 	local minX = 4.2
 	local minY = 3.2

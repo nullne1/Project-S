@@ -28,8 +28,17 @@ CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
     local floatTime = 1
     local fadeOutTime = 0.1
 
+    local critFloatTime = 1
+    local critFadeOutTime = 0.1
+
     local linearTweenInfoIn = TweenInfo.new(
 		floatTime,
+		Enum.EasingStyle.Linear,
+		Enum.EasingDirection.Out
+	)
+
+    local critLinearTweenInfoIn = TweenInfo.new(
+		critFloatTime,
 		Enum.EasingStyle.Linear,
 		Enum.EasingDirection.Out
 	)
@@ -40,14 +49,30 @@ CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
 		Enum.EasingDirection.Out,
         0,
         false,
-        floatTime - fadeOutTime
+        critFloatTime - critFadeOutTime
+	)
+
+    local critFadeOutTwInfo = TweenInfo.new(
+		fadeOutTime,
+		Enum.EasingStyle.Linear,
+		Enum.EasingDirection.Out,
+        0,
+        false,
+        critFloatTime - critFadeOutTime
 	)
 
     local sizeTweenInfo = TweenInfo.new(
-        0.2,
+        0.1,
         Enum.EasingStyle.Linear,
 		Enum.EasingDirection.Out
     )
+
+    local critSizeTweenInfo = TweenInfo.new(
+        0.1,
+        Enum.EasingStyle.Linear,
+		Enum.EasingDirection.Out
+    )
+
 
     local randDiff= math.random(-5, 5)
     local endPos = Vector3.new(startPos.X + randDiff, startPos.Y + 5, startPos.Z + randDiff)
@@ -57,16 +82,17 @@ CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
     local floatTween
     local fadeOutTween
     if (silkInfo["crit"]) then
-        billboardTextTween = TweenService:Create(billboardText, sizeTweenInfo, {Size = UDim2.new(0, 200, 0, 200)})
-        silkTextTween = TweenService:Create(billboardText.TextLabel, sizeTweenInfo, {Size = UDim2.new(0, 200, 0, 200)})
-        floatTween = TweenService:Create(tempPart, linearTweenInfoIn, {Position = endPos})
-        fadeOutTween = TweenService:Create(billboardText.TextLabel, fadeOutTwInfo, {TextTransparency = 1, TextStrokeTransparency = 1})
+        billboardTextTween = TweenService:Create(billboardText, critSizeTweenInfo, {Size = UDim2.new(0, 100, 0, 100)})
+        silkTextTween = TweenService:Create(billboardText.TextLabel, critSizeTweenInfo, {Size = UDim2.new(0, 100, 0, 100)})
+        floatTween = TweenService:Create(tempPart, critLinearTweenInfoIn, {Position = endPos})
+        fadeOutTween = TweenService:Create(billboardText.TextLabel, critFadeOutTwInfo, {TextTransparency = 1, TextStrokeTransparency = 1})
     else
-        billboardTextTween = TweenService:Create(billboardText, sizeTweenInfo, {Size = UDim2.new(0, 100, 0, 100)})
-        silkTextTween = TweenService:Create(billboardText.TextLabel, sizeTweenInfo, {Size = UDim2.new(0, 100, 0, 100)})
+        billboardTextTween = TweenService:Create(billboardText, sizeTweenInfo, {Size = UDim2.new(0, 50, 0, 50)})
+        silkTextTween = TweenService:Create(billboardText.TextLabel, sizeTweenInfo, {Size = UDim2.new(0, 50, 0, 50)})
         floatTween = TweenService:Create(tempPart, linearTweenInfoIn, {Position = endPos})
         fadeOutTween = TweenService:Create(billboardText.TextLabel, fadeOutTwInfo, {TextTransparency = 1, TextStrokeTransparency = 1})
     end
+
     billboardTextTween:Play()
     silkTextTween:Play()
     floatTween:Play()

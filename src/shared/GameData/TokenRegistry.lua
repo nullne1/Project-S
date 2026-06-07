@@ -12,7 +12,7 @@ local TokenUsed = ReplicatedStorage:WaitForChild("RemoteEvents").TokenUsed
 
 TokenRegistry.Abilities = {
     ["FireToken"] = function(player, farm, tokenPosition)
-
+        
     end,
 
     ["BasicToken"] = function(player, farm, tokenPosition)
@@ -22,6 +22,7 @@ TokenRegistry.Abilities = {
     end,
 
     ["CollectToken"] = function(player, farm, tokenPosition)
+        local dropAreaSize = farm.Plants:GetChildren()[1].DropArea.Size.Y
         local collectRadius = Instance.new("Part")
         collectRadius.Shape = "Cylinder"
         collectRadius.Anchored = true
@@ -29,7 +30,7 @@ TokenRegistry.Abilities = {
         collectRadius.CanQuery = false
         collectRadius.CastShadow = false
         collectRadius.Transparency = 1
-        collectRadius.Size = Vector3.new(farm.FarmArea.Size.X, 20, 10)
+        collectRadius.Size = Vector3.new(farm.FarmArea.Size.X, dropAreaSize, dropAreaSize)
         local floorY = farm.FarmArea.Position.Y
         collectRadius.CFrame = CFrame.new(tokenPosition.X, floorY, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
         collectRadius.Parent = workspace
@@ -77,7 +78,7 @@ TokenRegistry.Abilities = {
         local CollectTween = TweenService:Create(
             TweenShape,
             CollectTweenInfo,
-            {Size = Vector3.new(farm.FarmArea.Size.X, 20, 10)}
+            {Size = Vector3.new(farm.FarmArea.Size.X, dropAreaSize, dropAreaSize)}
         )
         
         task.spawn(function()

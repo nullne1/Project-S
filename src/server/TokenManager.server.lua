@@ -8,23 +8,38 @@ local TokenRegistry = require(ReplicatedStorage.Shared.GameData.TokenRegistry)
 
 local CollectedToken = ReplicatedStorage.RemoteEvents.CollectedToken
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
+-- local total = 0
+-- local b = 0
+-- local c = 0
+-- local f = 0
 
 CocoonStart.Event:Connect(function(type, wormModel, farm, player, targetPlant, wormCFrame, tokenSkills)
+    -- total += 1
     local tokenSkill
-    for key, value in pairs(tokenSkills) do
-        local rng = math.random()
-        -- if token ability is chosen and has lower chance than a previously chosen ability, choose that ability
-        if (rng <= value and tokenSkill and value < tokenSkills[tokenSkill]) then
-            tokenSkill = key
-        elseif (rng <= value) then
-            tokenSkill = key
+    local counter = 0
+    local rng = math.random()
+    for _, tokenInfo in tokenSkills do
+        counter += tokenInfo["chance"]
+        if (rng <= counter) then
+            -- if (tokenInfo["token"] == "BasicToken") then
+            --     b += 1
+            -- elseif (tokenInfo["token"] == "CollectToken") then
+            --     c += 1
+            -- elseif (tokenInfo["token"] == "FireToken") then
+            --     f += 1
+            -- end
+            -- if (total % 100 == 0) then
+            --     print("\nBasic: " .. b .. "\nCollect: " .. c .. "\nFire" .. f .. "\nTotal: " .. total)
+            -- end
+            tokenSkill = tokenInfo["token"]
+            break
         end
     end
+
     if (tokenSkill) then
         local token = TokenModule.new(wormCFrame, farm, player, tokenSkill)
         local collected = false
         token.Model.Touched:Connect(function(otherPart)
-            print("hello")
             if (not collected and tostring(otherPart.Parent) == tostring(player)) then
                 collected = true
                 activateToken(player, token.Model)

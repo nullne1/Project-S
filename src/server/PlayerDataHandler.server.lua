@@ -57,9 +57,9 @@ Players.PlayerAdded:Connect(function(player)
         return DataStore:GetAsync(MY_KEY)
     end)
     local MainGui = player.PlayerGui:WaitForChild("MainGui")
-    result["silkWorms"]["basicWorm"] = 1000
+    result["silkWorms"]["basicWorm"] = math.huge
     result["silkWorms"]["specialWorm"] = 0
-    result["spawnSpeed"] = 1/10
+    result["spawnSpeed"] = 1/100
     PlayerData.setData(player, result)
 
             -- fix this!! -------------------------------------------------------
