@@ -14,7 +14,7 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local inventoryFrame = playerGui:WaitForChild("MainGui").InventoryFrame
 
 UpdateInventory.OnClientEvent:Connect(function(newItem)
-    local items = GetPlayerData:InvokeServer()
+    local items = GetPlayerData:InvokeServer("items")
     local assetId = PlantDropRegistry.DropInfo[newItem]
 
     local itemKeys = {}
@@ -37,7 +37,7 @@ UpdateInventory.OnClientEvent:Connect(function(newItem)
 end)
 
 InitializeInventory.OnClientEvent:Connect(function()
-    local items = GetPlayerData:InvokeServer()
+    local items = GetPlayerData:InvokeServer("items")
     for key, value in pairs(items) do
         local assetId = PlantDropRegistry.DropInfo[key]
         local itemTemplate = ReplicatedStorage.UITemplates.ItemTemplate:Clone()

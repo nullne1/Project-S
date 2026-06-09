@@ -8,7 +8,7 @@ function Token.new(wormCFrame, farm, player, type)
     self.Player = player
 	self.Type = type
 
-    self.Model = game:GetService("ServerStorage").Tokens:FindFirstChild(self.Type):Clone()
+    self.Model = game:GetService("ReplicatedStorage"):WaitForChild("Tokens"):FindFirstChild(self.Type):Clone()
 	self.Model.Parent = workspace.Assets.Parts.Tokens
     self.Model:PivotTo(CFrame.new(wormCFrame.X, wormCFrame.Y + 5.5, wormCFrame.Z))
 	self.Model.CFrame *= CFrame.Angles(0, math.rad(-90), 0)

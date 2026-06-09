@@ -2,7 +2,6 @@ PlayerData = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GetPlayerData = ReplicatedStorage.RemoteFunctions.GetPlayerData
 local UsedWorm = ReplicatedStorage.RemoteEvents.UsedWorm
 local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
 
@@ -50,8 +49,8 @@ function PlayerData.useWorm(player, type)
     UsedWorm:FireClient(player, type)
 end
 
-function PlayerData.addWorm(player, type)
-    sessionData[player.UserId]["silkWorms"][type] += 1
+function PlayerData.addWorm(player, type, amount)
+    sessionData[player.UserId]["silkWorms"][type] += amount
     CollectedWorm:FireClient(player)
 end
 
@@ -61,11 +60,5 @@ function PlayerData.addSilk(player, amount)
         data.silk += amount
     end
 end
-
-GetPlayerData.OnServerInvoke = function(player)
-    return sessionData[player.UserId]["items"]
-end
-
-
 
 return PlayerData

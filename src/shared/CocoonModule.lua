@@ -1,13 +1,12 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(wormModel, farm, player, targetPlant, wormCFrame)
+function Cocoon.new(farm, targetPlant, wormCFrame)
     local self = setmetatable({}, Cocoon)
 	
     self.Farm = farm
-    self.Player = player
 	self.TargetPlant = targetPlant
-	self.Ball = game:GetService("ServerStorage").Balls.BasicBall:Clone()
+	self.Ball = game:GetService("ReplicatedStorage").Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = wormCFrame
@@ -44,7 +43,7 @@ function Cocoon:launch()
 
 	--print("Floating to target in " .. timeDuration .. " seconds...")
 
-	task.wait(timeDuration + 0.1)
+	task.wait(timeDuration - 0.04)
 
 	self.Ball.Anchored = true
 	self.Ball.AssemblyLinearVelocity = Vector3.zero
@@ -79,7 +78,7 @@ function Cocoon:spinCocoon()
 	)
     local spinCocoonTween = game:GetService("TweenService"):Create(self.Ball, linearTweenInfo, {
 		Transparency = 0, 
-		Position = Vector3.new(self.Ball.Position.X, self.Ball.Position.Y + 2, self.Ball.Position.Z),
+		Position = Vector3.new(self.Ball.Position.X, self.Ball.Position.Y + 0.5, self.Ball.Position.Z),
 		Size = Vector3.new(2, 2, 2)
 	})
 

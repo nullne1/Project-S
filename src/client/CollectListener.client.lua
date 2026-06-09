@@ -4,11 +4,11 @@ local Players = game:GetService("Players")
 
 local billboardText = ReplicatedStorage.Assets.BillboardText
 
-local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
+local CollectedSilk = ReplicatedStorage:WaitForChild("BindableEvents").CollectedSilk
 
 local localPlayer = Players.LocalPlayer
 
-CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
+CollectedSilk.Event:Connect(function(startPos, silkInfo)
     
     -- float text
     local tempPart = Instance.new("Part")

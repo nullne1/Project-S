@@ -3,22 +3,23 @@ local TokenRegistry = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local PlayerData = require(game:GetService("ReplicatedStorage").Shared.PlayerDataModule)
-local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
+local GetPlayerData = ReplicatedStorage:WaitForChild("RemoteFunctions").GetPlayerData
 
-local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
-local TokenUsed = ReplicatedStorage:WaitForChild("RemoteEvents").TokenUsed
+local AddWorm = ReplicatedStorage:WaitForChild("RemoteEvents").AddWorm
+local AddSilk = ReplicatedStorage:WaitForChild("RemoteEvents").AddSilk
+local TokenUsed = ReplicatedStorage:WaitForChild("BindableEvents").TokenUsed
 
+local CollectedSilk = ReplicatedStorage:WaitForChild("BindableEvents").CollectedSilk
 
 TokenRegistry.Abilities = {
     ["FireToken"] = function(player, farm, tokenPosition)
         
     end,
 
-    ["BasicToken"] = function(player, farm, tokenPosition)
-        local finalSilkInfo = calculateFinalSilk(player, "basicToken")
-        PlayerData.addSilk(player, finalSilkInfo["finalSilk"])
-        CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
+    ["SilkToken"] = function(player, farm, tokenPosition)
+        local finalSilkInfo = calculateFinalSilk("SilkToken")
+        AddSilk:FireServer(finalSilkInfo["finalSilk"])
+        CollectedSilk:Fire(tokenPosition, finalSilkInfo)
     end,
 
     ["CollectToken"] = function(player, farm, tokenPosition)
@@ -35,21 +36,22 @@ TokenRegistry.Abilities = {
         collectRadius.CFrame = CFrame.new(tokenPosition.X, floorY, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
         collectRadius.Parent = workspace
 
-        TokenUsed:FireClient(player, collectRadius)
+        TokenUsed:Fire(player, collectRadius)
 
-        local collectZone = Zone.new(collectRadius)
+        local wormsCollected = 0
         local function processCocoonPart(part)
             if (part.Name == "BasicBall") then
-                local finalSilkInfo = calculateFinalSilk(player, "collectToken")
-                CollectedSilk:FireClient(player, part.Position, finalSilkInfo)
-                PlayerData.addWorm(player, "basicWorm")
+                part.Name = "Collected"
+                local finalSilkInfo = calculateFinalSilk("collectToken")
+                CollectedSilk:Fire(part.Position, finalSilkInfo)
+                wormsCollected += 1
                 part:Destroy()
             end
         end
-
+        
         -- 1. Catch cocoons that fall into the aura AFTER it spawns
-        collectZone.partEntered:Connect(processCocoonPart)
-
+        collectRadius.Touched:Connect(processCocoonPart)
+        
         local overlapParams = OverlapParams.new()
         local partsInside = workspace:GetPartsInPart(collectRadius, overlapParams)
         
@@ -57,7 +59,7 @@ TokenRegistry.Abilities = {
         for _, part in pairs(partsInside) do
             processCocoonPart(part)
         end
-
+        
         local TweenShape = Instance.new("Part")
         TweenShape.Shape = "Cylinder"
         TweenShape.Anchored = true
@@ -65,6 +67,7 @@ TokenRegistry.Abilities = {
         TweenShape.CanQuery = false
         TweenShape.Size = Vector3.new(farm.FarmArea.Size.X, 0, 0)
         TweenShape.CFrame = CFrame.new(tokenPosition.X, floorY, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
+        TweenShape.Color = Color3.fromHex("#ff91ad")
         TweenShape.Material = Enum.Material.ForceField
         TweenShape.CastShadow = false
         TweenShape.Parent = workspace
@@ -84,21 +87,24 @@ TokenRegistry.Abilities = {
         task.spawn(function()
             CollectTween:Play()
             CollectTween.Completed:Wait()
-            collectZone:destroy()
             collectRadius:Destroy()
             TweenShape:Destroy()
         end)
+
+        if wormsCollected > 0 then
+            AddWorm:FireServer("basicWorm", wormsCollected)
+        end
     end
 }
 
-function calculateFinalSilk(player, token)
-    local flatSilk = PlayerData.getBasicData(player, "flatSilk")
+function calculateFinalSilk(token)
+    local flatSilk = GetPlayerData:InvokeServer("flatSilk")
     local finalSilkInfo = {}
     local finalSilk = math.random(math.ceil(flatSilk - flatSilk * 0.1), math.ceil(flatSilk + flatSilk * 0.1))
 
     local rand = math.random()
-    if (token == "basicToken" or rand <= PlayerData.getBasicData(player, "critChance")) then
-        finalSilk += finalSilk * PlayerData.getBasicData(player, "critBonus")
+    if (token == "SilkToken" or rand <= GetPlayerData:InvokeServer("critChance")) then
+        finalSilk += finalSilk * GetPlayerData:InvokeServer("critBonus")
         finalSilkInfo["crit"] = true
     else
         finalSilkInfo["crit"] = false

@@ -7,10 +7,13 @@ local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 local WormRegistry = require(ReplicatedStorage.Shared.GameData.WormRegistry)
 
+local CocoonFinished = ReplicatedStorage.RemoteEvents.CocoonFinished
+local CocoonStartClient = ReplicatedStorage.RemoteEvents.CocoonStartClient
+
+
 local playerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local playerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
-local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
 local SpawnReady = ServerStorage.BindableEvents.SpawnReady
 
 
@@ -76,7 +79,7 @@ local function startWorm(spawner, player, farm)
 
         -- on cocoon finished, despawn worm and remove it from activeWorms
         local cocoonConnection
-		cocoonConnection = CocoonFinished.Event:Connect(function(finishedWormModel)
+		cocoonConnection = CocoonFinished.OnServerEvent:Connect(function(player, finishedWormModel)
 			if (finishedWormModel == worm.Model) then
 
                 -- loops backwards through player's worms and searches for the worm that finished
@@ -107,9 +110,8 @@ local function startWorm(spawner, player, farm)
                 worm:goToLeaf()
                 pcall(function()
                     local tokenSkills = WormRegistry.Worms[wormType]["TokenSkills"]
-                    if (tokenSkills) then
-                        CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
-                    end
+                    CocoonStartClient:FireClient(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
+                    CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
                 end)
                 worm:pupate()
             end
