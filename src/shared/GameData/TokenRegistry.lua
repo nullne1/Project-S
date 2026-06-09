@@ -15,7 +15,7 @@ TokenRegistry.Abilities = {
         
     end,
 
-    ["BasicToken"] = function(player, farm, tokenPosition)
+    ["SilkToken"] = function(player, farm, tokenPosition)
         local finalSilkInfo = calculateFinalSilk(player, "basicToken")
         PlayerData.addSilk(player, finalSilkInfo["finalSilk"])
         CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
@@ -66,6 +66,7 @@ TokenRegistry.Abilities = {
         TweenShape.Size = Vector3.new(farm.FarmArea.Size.X, 0, 0)
         TweenShape.CFrame = CFrame.new(tokenPosition.X, floorY, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
         TweenShape.Material = Enum.Material.ForceField
+        TweenShape.Color = Color3.fromHex("#ff91ad")
         TweenShape.CastShadow = false
         TweenShape.Parent = workspace
         

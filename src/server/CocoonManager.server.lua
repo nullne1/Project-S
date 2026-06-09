@@ -5,10 +5,11 @@ local CocoonModule = require(game:GetService("ReplicatedStorage").Shared.CocoonM
 local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 
+local SpawnLocalMesh = ReplicatedStorage.RemoteEvents.SpawnPrivateMesh
+local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
+
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local CocoonFinished = ServerStorage.BindableEvents.CocoonFinished
-local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
-local CollectedWorm = ReplicatedStorage.RemoteEvents.CollectedWorm
 
 local function calculateFinalSilk(player)
     local flatSilk = PlayerData.getBasicData(player, "flatSilk")

@@ -59,7 +59,7 @@ Players.PlayerAdded:Connect(function(player)
     local MainGui = player.PlayerGui:WaitForChild("MainGui")
     result["silkWorms"]["basicWorm"] = math.huge
     result["silkWorms"]["specialWorm"] = 0
-    result["spawnSpeed"] = 1/100
+    result["spawnSpeed"] = 1/10
     PlayerData.setData(player, result)
 
             -- fix this!! -------------------------------------------------------
