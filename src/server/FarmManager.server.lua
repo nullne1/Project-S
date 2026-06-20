@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
 local PlantModule = require(ReplicatedStorage.Shared.PlantModule)
+local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 
 local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
 local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
@@ -18,7 +19,6 @@ local MIN_SPACING = 10
 local TREE_DROP_RADIUS = 10
 
 local function zoneSetup() 
-	local farmDict = {}
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
     	-- creates a zone based on farmArea part
 		local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
@@ -31,9 +31,9 @@ local function zoneSetup()
 		-- redo this maybe for instanced farms
 
 		local farmZone = Zone.new(farmArea)
-		farmArray = {}
 		farmZone.playerEntered:Connect(function(player)
 			playerEnteredFarm:Fire(player, farm)
+			PlayerDataModule.setBasicData(player, "lastFarmEntered", farm.Name)
 		end)
 
 		farmZone.playerExited:Connect(function(player)
@@ -81,7 +81,7 @@ local function getValidSpawnPoint(zonePart, currentZonePlants)
 	end
 
 	if not isTooClose then
-		return Vector3.new(testPos.X, testPos.Y, testPos.Z)
+		return Vector3.new(testPos.X, testPos.Y + 1, testPos.Z)
 	end
 
 	return nil 

@@ -47,8 +47,8 @@ local function findPlant(farm)
 		local randomIndexIndex = math.random(1, #indexArray)
 		local randomIndex = indexArray[randomIndexIndex]
 		table.remove(indexArray, randomIndexIndex)
-		local plantModel = plantArray[randomIndex]
-		plantData = PlantRegistry[plantModel]
+		local plantMesh = plantArray[randomIndex]
+		local plantData = PlantRegistry[plantMesh]
 		if (plantData and plantData["uses"] > 0) then
 			plantModule = plantData["module"]
             foundPlantData = plantData
@@ -79,7 +79,7 @@ local function startWorm(spawner, player, farm)
 
         -- on cocoon finished, despawn worm and remove it from activeWorms
         local cocoonConnection
-		cocoonConnection = CocoonFinished.OnServerEvent:Connect(function(player, finishedWormModel)
+		cocoonConnection = CocoonFinished.OnServerEvent:Connect(function(player, finishedWormModel, targetPlant)
 			if (finishedWormModel == worm.Model) then
 
                 -- loops backwards through player's worms and searches for the worm that finished

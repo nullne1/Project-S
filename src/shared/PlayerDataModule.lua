@@ -36,6 +36,10 @@ function PlayerData.getBasicData(player, data)
     return nil
 end
 
+function PlayerData.setBasicData(player, data, info)
+    sessionData[player.UserId][data] = info
+end
+
 function PlayerData.addItem(player, item)
     if (item and not sessionData[player.UserId]["items"][item]) then
         sessionData[player.UserId]["items"][item] = 1

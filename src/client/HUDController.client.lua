@@ -3,8 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UsedWorm = ReplicatedStorage:WaitForChild("RemoteEvents").UsedWorm
 local CollectedWorm = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedWorm
+local CollectedSilk = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedSilk
 
-local CollectedSilk = ReplicatedStorage:WaitForChild("BindableEvents").CollectedSilk
 local InventoryOpened = ReplicatedStorage:WaitForChild("BindableEvents").InventoryOpened
 local InventoryClosed = ReplicatedStorage:WaitForChild("BindableEvents").InventoryClosed
 
@@ -37,7 +37,7 @@ invButton.MouseButton1Click:Connect(function()
     end
 end)
 
-CollectedSilk.Event:Connect(function(startPos, silkInfo)
+CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
     silkText.Text += silkInfo["finalSilk"]
 end)
 

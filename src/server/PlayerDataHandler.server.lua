@@ -3,11 +3,11 @@ local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
+local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 
 local InitializeInventory = ReplicatedStorage:WaitForChild("RemoteEvents").InitializeInventory
 
-local DataStore = DataStoreService:GetDataStore("1")
+local DataStore = DataStoreService:GetDataStore("3")
 local MY_KEY = "User_93142234"
 
 local DEFAULT_DATA = {
@@ -20,7 +20,9 @@ local DEFAULT_DATA = {
 
     critChance = 0.05,
     critBonus = 2,
-    spawnSpeed = 1 / 20
+    spawnSpeed = 1 / 1,
+
+    lastFarmEntered = nil
 }
 
 Players.PlayerAdded:Connect(function(player)
@@ -31,11 +33,22 @@ Players.PlayerAdded:Connect(function(player)
     
     
     if (success and not result) then
-        PlayerData.setData(player, DEFAULT_DATA)
-        print("Loaded data for " .. player.UserId, DEFAULT_DATA)
+        -- first time playing
+        PlayerDataModule.setData(player, DEFAULT_DATA)
+        InitializeInventory:FireClient(player)
+
+        local MainGui = player.PlayerGui:WaitForChild("MainGui")
+        -- fix this!! -------------------------------------------------------
+        local SilkText = MainGui.DataFrame.SilkText
+        local WormsText = MainGui.DataFrame.WormsText
+
+        SilkText.Text = 0
+        WormsText.Text = 10
+
+        print("Set Default Data for " .. player.UserId)
     elseif success and result then
         result["silkWorms"] = table.clone(result["peristentWorms"])
-        PlayerData.setData(player, result)
+        PlayerDataModule.setData(player, result)
         InitializeInventory:FireClient(player)
 
         local MainGui = player.PlayerGui:WaitForChild("MainGui")
@@ -53,23 +66,26 @@ Players.PlayerAdded:Connect(function(player)
     end
 
     -- custom data
-    local success, result = pcall(function()
-        return DataStore:GetAsync(MY_KEY)
-    end)
-    local MainGui = player.PlayerGui:WaitForChild("MainGui")
-    result["silkWorms"]["basicWorm"] = math.huge
-    result["silkWorms"]["specialWorm"] = 0
-    result["spawnSpeed"] = 1/10
-    PlayerData.setData(player, result)
+    if (player.UserId == 93142234) then
+        DataStore:SetAsync(key, PlayerDataModule.getData(player))
+        local success, result = pcall(function()
+            return DataStore:GetAsync(MY_KEY)
+        end)
+        local MainGui = player.PlayerGui:WaitForChild("MainGui")
+        result["silkWorms"]["basicWorm"] = math.huge
+        result["silkWorms"]["specialWorm"] = 0
+        result["spawnSpeed"] = 1/20
+        result["lastFarmEntered"] = nil
+        PlayerDataModule.setData(player, result)
 
-            -- fix this!! -------------------------------------------------------
-    local SilkText = MainGui.DataFrame.SilkText
-    local WormsText = MainGui.DataFrame.WormsText
+                -- fix this!! -------------------------------------------------------
+        local SilkText = MainGui.DataFrame.SilkText
+        local WormsText = MainGui.DataFrame.WormsText
 
-    SilkText.Text = result["silk"]
-    WormsText.Text = result["silkWorms"]["basicWorm"]
-
-    -- print playerdata
+        SilkText.Text = result["silk"]
+        WormsText.Text = result["silkWorms"]["basicWorm"]
+    end
+    -- print PlayerDataModule
     -- local success, errorMessage = pcall(function()
     --     -- Ask Roblox for the first "page" of keys
     --     local pages = DataStore:ListKeysAsync()
@@ -106,24 +122,42 @@ local function removePlayerEntities(player)
     local playerEntities = CollectionService:GetTagged(playerTag)
     
     for index, entity in ipairs(playerEntities) do
+        print(entity)
         entity:Destroy()
     end
 end
 
 Players.PlayerRemoving:Connect(function(player)
     removePlayerEntities(player)
+    print("hello")
     local key = "User_" .. player.UserId
     local success, err = pcall(function()
-		DataStore:SetAsync(key, PlayerData.getData(player))
-        print(PlayerData.getData(player))
+        print(PlayerDataModule.getData(player))
+		DataStore:SetAsync(key, PlayerDataModule.getData(player))
 	end)
 	
 	if (not success) then
 		warn("Could not save data: " .. err)
 	end
 
-    PlayerData.removeData(player)
-    -- local currentCocoons = player.leaderstats.Cocoons.Value
+    print("exit")
+    PlayerDataModule.removeData(player)
+end)
+
+game:BindToClose(function()
+    if game:GetService("RunService"):IsStudio() then
+        -- A simple wait is usually enough for Studio testing
+        task.wait(3)
+    else
+        -- In a live game, loop through any remaining players and save their data
+        for _, player in ipairs(Players:GetPlayers()) do
+            -- Call your save function here just to be safe
+            local key = "User_" .. player.UserId
+            pcall(function()
+                DataStore:SetAsync(key, PlayerDataModule.getData(player))
+            end)
+        end
+    end
 end)
 
 local function simpleDeepCopy(original)

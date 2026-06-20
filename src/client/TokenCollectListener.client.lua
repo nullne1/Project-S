@@ -2,8 +2,8 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CollectedToken = ReplicatedStorage:WaitForChild("BindableEvents").CollectedToken
-local TokenUsed = ReplicatedStorage:WaitForChild("BindableEvents").TokenUsed
+local RaycastIgnore = ReplicatedStorage:WaitForChild("BindableEvents").RaycastIgnore
+local CollectedToken = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedToken
 
 local camera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
@@ -12,15 +12,27 @@ local mouse = localPlayer:GetMouse()
 -- raycast filter
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-raycastParams.FilterDescendantsInstances = {
-    localPlayer.Character,
-    workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
-    workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
-    workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
+local ignoredInstances = {
+	localPlayer.Character,
+	workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
+	workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
+	workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
 }
 
-TokenUsed.Event:Connect(function(tokenPart)
-    table.insert(raycastParams.FilterDescendantsInstances, tokenPart)
+raycastParams.FilterDescendantsInstances = ignoredInstances
+
+RaycastIgnore.Event:Connect(function(part)
+    if (#ignoredInstances >= 10000) then
+        ignoredInstances = {
+            localPlayer.Character,
+            workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
+            workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
+            workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
+        }
+    end
+	table.insert(ignoredInstances, part)
+
+	raycastParams.FilterDescendantsInstances = ignoredInstances
 end)
 
 local function checkHover()
@@ -37,7 +49,8 @@ local function checkHover()
         
         -- Now we check if the part we hit is a Token!
         if hitPart:IsDescendantOf(workspace.Assets.Parts.Tokens) then
-            CollectedToken:Fire(hitPart)
+            CollectedToken:FireServer(hitPart.Name, hitPart.Position)
+            hitPart:Destroy()
         end
     end
 end

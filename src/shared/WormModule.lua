@@ -62,7 +62,7 @@ function Worm:pupate()
 		Enum.EasingDirection.In
 	)
 
-	while (not self.CocoonFinished and self.Model) do
+	while (self.Model) do
 		local orientationChange = math.random(0, 1)
 		local degreeChange = math.rad(math.random(0, 90))
 		

@@ -4,11 +4,13 @@ local Players = game:GetService("Players")
 
 local billboardText = ReplicatedStorage.Assets.BillboardText
 
-local CollectedSilk = ReplicatedStorage:WaitForChild("BindableEvents").CollectedSilk
+local CollectedSilk = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedSilk
+
+local RaycastIgnore = ReplicatedStorage:WaitForChild("BindableEvents").RaycastIgnore
 
 local localPlayer = Players.LocalPlayer
 
-CollectedSilk.Event:Connect(function(startPos, silkInfo)
+CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
     
     -- float text
     local tempPart = Instance.new("Part")
@@ -16,6 +18,7 @@ CollectedSilk.Event:Connect(function(startPos, silkInfo)
     tempPart.CanCollide = false
     tempPart.Transparency = 1
     tempPart.Position = startPos
+    RaycastIgnore:Fire(tempPart)
     tempPart.Parent = workspace
 
     local billboardText = billboardText:Clone()
@@ -82,8 +85,8 @@ CollectedSilk.Event:Connect(function(startPos, silkInfo)
     local floatTween
     local fadeOutTween
     if (silkInfo["crit"]) then
-        billboardTextTween = TweenService:Create(billboardText, critSizeTweenInfo, {Size = UDim2.new(0, 125, 0, 125)})
-        silkTextTween = TweenService:Create(billboardText.TextLabel, critSizeTweenInfo, {Size = UDim2.new(0, 125, 0, 125)})
+        billboardTextTween = TweenService:Create(billboardText, critSizeTweenInfo, {Size = UDim2.new(0, 150, 0, 150)})
+        silkTextTween = TweenService:Create(billboardText.TextLabel, critSizeTweenInfo, {Size = UDim2.new(0, 150, 0, 150)})
         floatTween = TweenService:Create(tempPart, critLinearTweenInfoIn, {Position = endPos})
         fadeOutTween = TweenService:Create(billboardText.TextLabel, critFadeOutTwInfo, {TextTransparency = 1, TextStrokeTransparency = 1})
     else
