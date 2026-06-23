@@ -8,8 +8,6 @@ local PlayerData = require(ReplicatedStorage.Shared.PlayerDataModule)
 local WormRegistry = require(ReplicatedStorage.Shared.GameData.WormRegistry)
 
 local CocoonFinished = ReplicatedStorage.RemoteEvents.CocoonFinished
-local CocoonStartClient = ReplicatedStorage.RemoteEvents.CocoonStartClient
-
 
 local playerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local playerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
@@ -110,8 +108,7 @@ local function startWorm(spawner, player, farm)
                 worm:goToLeaf()
                 pcall(function()
                     local tokenSkills = WormRegistry.Worms[wormType]["TokenSkills"]
-                    CocoonStartClient:FireClient(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
-                    CocoonStart:Fire(wormType, worm.Model, worm.Farm, worm.Player, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
+                    CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
                 end)
                 worm:pupate()
             end

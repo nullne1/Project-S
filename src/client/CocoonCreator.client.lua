@@ -7,19 +7,19 @@ local CollectedCocoon = ReplicatedStorage:WaitForChild("RemoteEvents").Collected
 local CocoonStartClient = ReplicatedStorage:WaitForChild("RemoteEvents").CocoonStartClient
 local CocoonFinished = ReplicatedStorage:WaitForChild("RemoteEvents").CocoonFinished
 
-local LocalPlayer = Players.LocalPlayer
+local localPlayer = Players.LocalPlayer
 
-CocoonStartClient.OnClientEvent:Connect(function(type, wormModel, farm, targetPlant, wormCFrame, tokenSkills)
-    local cocoon = CocoonModule.new(farm, targetPlant, wormCFrame)
+CocoonStartClient.OnClientEvent:Connect(function(cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos)
+    local cocoon = CocoonModule.new(cocoonID, farm, targetPlant, wormCFrame, targetPos)
     cocoon:spinCocoon()
     
     -- detect player
     local notCollected = true
     local canBeCollected
     cocoon.Ball.Touched:Connect(function(part)
-        if (notCollected and canBeCollected and part and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(LocalPlayer)) then
+        if (notCollected and canBeCollected and part and part.Parent and part.Parent:FindFirstChild("Humanoid") and tostring(part.Parent) == tostring(localPlayer)) then
             notCollected = false
-            CollectedCocoon:FireServer(type, cocoon.Ball.Position)
+            CollectedCocoon:FireServer(cocoon.CocoonID, type)
             cocoon:despawn()
         end
     end)

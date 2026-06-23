@@ -4,103 +4,59 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
+local CocoonRegistry = require(ReplicatedStorage.Shared.GameData.CocoonRegistry)
 
-local RaycastIgnore = ReplicatedStorage.BindableEvents.RaycastIgnore
-
+local RenderTokenEffect = ReplicatedStorage.RemoteEvents.RenderTokenEffect
+local RaycastIgnore = ReplicatedStorage.RemoteEvents.RaycastIgnore
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 TokenRegistry.Abilities = {
-    ["FireToken"] = function(player, farm, tokenPosition)
-        
+    ["FireToken"] = function(player, farm, tokenPosition, targetPlant)
+        if (targetPlant) then
+            local ColorTween = TweenService:Create(
+                targetPlant,
+                TweenInfo.new(0.5, Enum.EasingStyle.Linear),
+                {Color = Color3.fromHex("#FF0000")}
+            )
+            ColorTween:Play()
+        end
     end,
 
-    ["SilkToken"] = function(player, farm, tokenPosition)
+    ["SilkToken"] = function(player, farm, tokenPosition, targetPlant)
         local finalSilkInfo = calculateFinalSilk(player, "SilkToken")
         PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
         CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
     end,
 
-    ["CollectToken"] = function(player, farm, tokenPosition)
+    ["CollectToken"] = function(player, farm, tokenPosition, targetPlant)
         local dropAreaSize = farm.Plants:GetChildren()[1].DropArea.Size.Y
-        local collectRadius = Instance.new("Part")
-        collectRadius.Shape = "Cylinder"
-        collectRadius.Anchored = true
-        collectRadius.CanCollide = false
-        collectRadius.CanQuery = false
-        collectRadius.CastShadow = false
-        collectRadius.Transparency = 1
-        collectRadius.Size = Vector3.new(farm.FarmArea.Size.X, dropAreaSize, dropAreaSize)
-        local floorY = farm.FarmArea.Position.Y
-        collectRadius.CFrame = CFrame.new(tokenPosition.X, floorY, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
-        collectRadius.Parent = workspace
-        
-        RaycastIgnore:Fire(collectRadius)
-        
-        local TweenShape = Instance.new("Part")
-        TweenShape.Shape = "Cylinder"
-        TweenShape.Anchored = true
-        TweenShape.CanCollide = false
-        TweenShape.CanQuery = false
-        TweenShape.Size = Vector3.new(farm.FarmArea.Size.X, 0, 0)
-        TweenShape.Color = Color3.fromHex("#ff91ad")
-        TweenShape.Material = Enum.Material.ForceField
-        TweenShape.CastShadow = false
-        
-        local CollectTweenInfo = TweenInfo.new(
-            0.3,
-            Enum.EasingStyle.Linear,
-            Enum.EasingDirection.Out
-        )
-
-        local wormsList = {}
+        local collectRadius = (dropAreaSize / 2) + 1.6
+        local playerCocoons = CocoonRegistry[player.UserId]
         local wormsCollected = 0
-        local function processCocoonPart(part)
-            if (part.Name == "BasicBall") then
-                table.insert(wormsList, part)
-                wormsCollected += 1
-            end
-        end
-        
-        -- 1. Catch cocoons that fall into the radius AFTER it spawns
-        collectRadius.Touched:Connect(processCocoonPart)
-        
-        local overlapParams = OverlapParams.new()
-        local partsInside = workspace:GetPartsInPart(collectRadius, overlapParams)
-        
-        -- 2. Catch cocoons that were ALREADY there when the aura spawned
-        for _, part in pairs(partsInside) do
-            processCocoonPart(part)
-        end
+        local collectedIDs = {}
 
-        collectRadius:Destroy()
-
-        for _, cocoon in pairs(wormsList) do
-            if (cocoon) then
-                local TweenShapeCopy = TweenShape:Clone()
-                TweenShape.CFrame = CFrame.new(cocoon.Position.X, floorY, cocoon.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
-                TweenShapeCopy.Parent = workspace
-                RaycastIgnore:Fire(TweenShapeCopy)
+        if playerCocoons then
+            for cocoonID, cocoonPosition in pairs(playerCocoons) do
+                local distance = (tokenPosition - cocoonPosition).Magnitude
                 
-                local CollectTween = TweenService:Create(
-                    TweenShapeCopy,
-                    CollectTweenInfo,
-                    {Size = Vector3.new(farm.FarmArea.Size.X, cocoon.Size.X, cocoon.Size.X)}
-                )
-                
-                task.spawn(function()
-                    CollectTween:Play()
-                    cocoon:Destroy()
-                    CollectTween.Completed:Wait()
-                    TweenShapeCopy:Destroy()
-                end)
+                if distance <= collectRadius then
+                    wormsCollected += 1
+                    table.insert(collectedIDs, cocoonID)
+                    
+                    local finalSilkInfo = calculateFinalSilk(player, "collectToken")
+                    CollectedSilk:FireClient(player, cocoonPosition, finalSilkInfo)
 
-                local finalSilkInfo = calculateFinalSilk(player, "collectToken")
-                CollectedSilk:Fire(cocoon.Position, finalSilkInfo)
+                    -- Remove it from the virtual registry
+                    playerCocoons[cocoonID] = nil
+                end
             end
         end
 
         if wormsCollected > 0 then
-            PlayerDataModule.addWorm(player, type, wormsCollected)
+            PlayerDataModule.addWorm(player, "basicWorm", wormsCollected)
+            
+            -- Tell the client to play the pink cylinder effect AND delete the physical meshes
+            RenderTokenEffect:FireClient(player, "CollectToken", farm, tokenPosition, collectedIDs)
         end
     end
 }

@@ -1,7 +1,7 @@
 local Token = {}
 Token.__index = Token
 
-function Token.new(wormCFrame, farm, player, type)
+function Token.new(wormCFrame, farm, player, type, targetPlant)
     local self = setmetatable({}, Token)
 
     self.Farm = farm

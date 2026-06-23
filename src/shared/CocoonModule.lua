@@ -1,22 +1,26 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
+function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos)
 
-function Cocoon.new(farm, targetPlant, wormCFrame)
     local self = setmetatable({}, Cocoon)
 	
+	self.CocoonID = cocoonID
     self.Farm = farm
 	self.TargetPlant = targetPlant
+	self.TargetPos = targetPos
+
 	self.Ball = game:GetService("ReplicatedStorage").Balls.BasicBall:Clone()
     self.Ball.Transparency = 1
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = wormCFrame
+	self.Ball.Name = self.CocoonID
 
     return self
 end
 
 function Cocoon:launch()
 	local startPos = self.Ball.Position
-	local targetPos = self:getTargetPos()
+	local targetPos = self.TargetPos
 	
 	local timeDuration = 1
 	local ARC_HEIGHT_GRAVITY = 100
@@ -51,23 +55,6 @@ function Cocoon:launch()
 	self.Ball.Position = targetPos
 	antiGravity.Enabled = false
 	--print("Launched to:", targetPos)
-end
-
-function Cocoon:getTargetPos()
-	local dropAreaSize = self.TargetPlant.DropArea.Size
-	local radius = math.min(dropAreaSize.Y, dropAreaSize.Z) / 2
-	local angle = math.random() * 2 * math.pi
-	local dist = radius * math.sqrt(math.random())
-	local offsetY = dist * math.cos(angle)
-    local offsetZ = dist * math.sin(angle)
-	local surfacePointWorldPos = self.TargetPlant.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
-	local finalRestingPos = Vector3.new(
-        surfacePointWorldPos.X,
-        surfacePointWorldPos.Y + (self.Ball.Size.Y / 2),
-        surfacePointWorldPos.Z
-    )
-    
-    return finalRestingPos
 end
 
 function Cocoon:spinCocoon()

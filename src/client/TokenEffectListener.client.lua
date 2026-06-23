@@ -1,0 +1,49 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local RenderTokenEffect = ReplicatedStorage:WaitForChild("RemoteEvents").RenderTokenEffect
+
+local RaycastIgnore = ReplicatedStorage:WaitForChild("BindableEvents").RaycastIgnore
+
+local ClientCocoonFolder = workspace:WaitForChild("Assets").Parts.Balls
+
+RenderTokenEffect.OnClientEvent:Connect(function(tokenType, farm, tokenPosition, collectedIDs)
+    if (tokenType == "CollectToken") then
+        local TweenShape = Instance.new("Part")
+        TweenShape.Shape = "Cylinder"
+        TweenShape.Anchored = true
+        TweenShape.CanCollide = false
+        TweenShape.CanQuery = false
+        TweenShape.Size = Vector3.new(farm.FarmArea.Size.X, 0, 0)
+        TweenShape.CFrame = CFrame.new(tokenPosition.X, farm.FarmArea.Position.Y, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
+        TweenShape.Color = Color3.fromHex("#ff91ad")
+        TweenShape.Material = Enum.Material.ForceField
+        TweenShape.CastShadow = false
+        TweenShape.Parent = workspace
+        
+        local CollectTweenInfo = TweenInfo.new(
+            0.25,
+            Enum.EasingStyle.Linear,
+            Enum.EasingDirection.Out
+        )
+
+        local CollectTween = TweenService:Create(
+            TweenShape,
+            CollectTweenInfo,
+            {Size = Vector3.new(farm.FarmArea.Size.X, 20, 10)}
+        )
+        
+        task.spawn(function()
+            CollectTween:Play()
+            CollectTween.Completed:Wait()
+            TweenShape:Destroy()
+        end)
+
+        for _, cocoonID in pairs(collectedIDs) do
+            local cocoonMesh = ClientCocoonFolder:FindFirstChild(cocoonID)
+            if (cocoonMesh) then
+                cocoonMesh:Destroy()
+            end    
+        end
+    end
+end)

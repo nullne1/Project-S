@@ -4,8 +4,8 @@ WormRegistry.Worms = {
     ["basicWorm"] = {
         Speed = 1,
         TokenSkills = {
-            {token = "FireToken", chance = 0.01},
-            {token = "CollectToken", chance = 0.00},
+            {token = "FireToken", chance = 0.25},
+            {token = "CollectToken", chance = 0.25},
             {token = "SilkToken", chance = 0.5}}
     }
 }
