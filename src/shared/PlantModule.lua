@@ -19,10 +19,11 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.Mesh.Anchored = true
 	self.Mesh.CanCollide = false
 	self.Mesh.CanTouch = false
+	-- self.Mesh.Color = Color3.fromHex("#316f20")
+	self.OriginalColor = Color3.fromHex("#316f20")
 	self.Mesh:PivotTo(spawnCFrame)
 	self.Farm = farm
-	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
-	
+	self.FireStacks = 0
 	
 	self.DropArea = Instance.new("Part")
 	self.DropArea.Name = "DropArea"
@@ -35,31 +36,52 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
 	
-	self.Uses = math.huge
-
+	self.Uses = 50
+	
 	local minX = 4.2
 	local minY = 3.2
-
+	
 	self.IncreaseFactorXZ = (8.4 - minX) / self.Uses  
 	self.IncreaseFactorY = (7.2 - minY) / self.Uses
-
+	
 	self.Mesh.Size = Vector3.new(minX, minY, minX)
+
+	local farmIndex = table.find(workspace.Assets.Parts.Farms:GetChildren(), farm)
 	self.Mesh.Parent = workspace.Assets.Parts.Farms:GetChildren()[farmIndex].Plants
 
-	PlantRegistry[self.Mesh] = {
-		module = self,
-		uses = self.Uses,
-		cocoonUses = self.Uses,
-		drops = {PlantDropRegistry.Drops[self.Name]}
-	}
+	PlantRegistry[self.Mesh] = self
+
 	return self
 end
 
+function Plant:setFire()
+	self.FireStacks = 1
+	while self.Uses and self.Uses > 0 do
+		print("hello")
+		self.Mesh.Color = Color3.fromHex("FF0000")
+
+		local RecoverTween = TweenService:Create(
+			self.Mesh,
+			TweenInfo.new(5 / self.FireStacks, Enum.EasingStyle.Linear),
+			{Color = self.OriginalColor}
+		)
+
+		self:depleteUse()
+		RecoverTween:Play()
+		RecoverTween.Completed:Wait()
+	end
+end
+
 function Plant:depleteUse()
-	local currentSize = self.Mesh.Size
-	local TweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-	local ExpandTween = TweenService:Create(self.Mesh, TweenInfo, {Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ, currentSize.Y + self.IncreaseFactorY, currentSize.Z + self.IncreaseFactorXZ)})
-	ExpandTween:Play()
+	self.Uses -= 1
+	if (self.Uses <= 0) then
+		self:despawn()
+	else
+		local currentSize = self.Mesh.Size
+		local TweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		local ExpandTween = TweenService:Create(self.Mesh, TweenInfo, {Size = Vector3.new(currentSize.X + self.IncreaseFactorXZ, currentSize.Y + self.IncreaseFactorY, currentSize.Z + self.IncreaseFactorXZ)})
+		ExpandTween:Play()
+	end
 end
 
 function Plant:disappearTween()
@@ -73,8 +95,9 @@ function Plant:disappearTween()
 	ExplodeTween.Completed:Wait()
 end
 
-function Plant:Despawn(player)
-	PlantDespawned:Fire(self.Name, self.SpawnCFrame, self.Farm, player)
+function Plant:despawn()
+	PlantRegistry[self.Mesh] = nil
+	PlantDespawned:Fire(self.Name, self.SpawnCFrame, self.Farm)
 	self:disappearTween()
 	self.Mesh:Destroy()
 	self.DropArea:Destroy()

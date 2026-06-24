@@ -16,7 +16,7 @@ RenderTokenEffect.OnClientEvent:Connect(function(tokenType, farm, tokenPosition,
         TweenShape.CanQuery = false
         TweenShape.Size = Vector3.new(farm.FarmArea.Size.X, 0, 0)
         TweenShape.CFrame = CFrame.new(tokenPosition.X, farm.FarmArea.Position.Y, tokenPosition.Z) * CFrame.Angles(0, 0, math.rad(90))
-        TweenShape.Color = Color3.fromHex("#ff91ad")
+        TweenShape.Color = Color3.fromHex("#d358be")
         TweenShape.Material = Enum.Material.ForceField
         TweenShape.CastShadow = false
         TweenShape.Parent = workspace

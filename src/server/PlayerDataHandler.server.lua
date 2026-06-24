@@ -129,7 +129,6 @@ end
 
 Players.PlayerRemoving:Connect(function(player)
     removePlayerEntities(player)
-    print("hello")
     local key = "User_" .. player.UserId
     local success, err = pcall(function()
         print(PlayerDataModule.getData(player))

@@ -5,9 +5,12 @@ local TweenService = game:GetService("TweenService")
 local Zone = require(ReplicatedStorage.ZonePluginModule.Zone)
 local PlantModule = require(ReplicatedStorage.Shared.PlantModule)
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
+local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 
-local playerEnteredFarm = ServerStorage.BindableEvents:WaitForChild("PlayerEnteredFarm")
-local playerExitedFarm = ServerStorage.BindableEvents:WaitForChild("PlayerExitedFarm")
+local CocoonFinished = ReplicatedStorage.RemoteEvents.CocoonFinished
+
+local PlayerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
+local PlayerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
 local PlantDespawned = ServerStorage.BindableEvents.PlantDespawned
 
 local farmsFolder = workspace.Assets.Parts.Farms
@@ -32,12 +35,12 @@ local function zoneSetup()
 
 		local farmZone = Zone.new(farmArea)
 		farmZone.playerEntered:Connect(function(player)
-			playerEnteredFarm:Fire(player, farm)
+			PlayerEnteredFarm:Fire(player, farm)
 			PlayerDataModule.setBasicData(player, "lastFarmEntered", farm.Name)
 		end)
 
 		farmZone.playerExited:Connect(function(player)
-			playerExitedFarm:Fire(player, farm)
+			PlayerExitedFarm:Fire(player, farm)
 		end)
 	end
 end
@@ -174,5 +177,13 @@ local function farmSetup()
 	spawnInitialPlants()
 	PlantDespawned.Event:Connect(replacePlant)
 end
+
+CocoonFinished.OnServerEvent:Connect(function(player, wormModel, targetPlant)
+    local plantModule = PlantRegistry[targetPlant]
+
+    if (plantModule) then
+		plantModule:depleteUse()
+    end
+end)
 
 farmSetup()

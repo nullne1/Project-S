@@ -38,32 +38,27 @@ local function findPlant(farm)
 		indexArray[i] = i
 	end
 
-    local plantModule
-    local foundPlantData
 	for i = 1, #plantArray, 1 do
 		-- pick a random plant's indexes, then delete its index so it doesn't get picked again in the case that the plant is dead
 		local randomIndexIndex = math.random(1, #indexArray)
 		local randomIndex = indexArray[randomIndexIndex]
 		table.remove(indexArray, randomIndexIndex)
 		local plantMesh = plantArray[randomIndex]
-		local plantData = PlantRegistry[plantMesh]
-		if (plantData and plantData["uses"] > 0) then
-			plantModule = plantData["module"]
-            foundPlantData = plantData
-			break
+		local plantModule = PlantRegistry[plantMesh]
+		if (plantModule and plantModule.Uses > 0) then
+			return plantModule
 		end
 	end
 
-    return plantModule, foundPlantData
+    return nil
 end
 
 local function startWorm(spawner, player, farm)
     local wormType = getWorm(player)
-    local plantModule, plantData = findPlant(farm)
+    local plantModule = findPlant(farm)
     if (plantModule and wormType) then
         -- all conditions are met, spawn worm
         PlayerData.useWorm(player, wormType)
-        plantData["uses"] -= 1
 
         -- spawn worm and insert
         local worm = WormModule.new(wormType, 1, spawner.Handle.CFrame, farm, player)

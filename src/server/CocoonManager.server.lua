@@ -1,16 +1,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local HttpService = game:GetService("HttpService")
 
-local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 local CocoonRegistry = require(ReplicatedStorage.Shared.GameData.CocoonRegistry)
 
 local CocoonStartClient = ReplicatedStorage.RemoteEvents.CocoonStartClient
 
 local CollectedCocoon = ReplicatedStorage.RemoteEvents.CollectedCocoon
-local CocoonFinished = ReplicatedStorage.RemoteEvents.CocoonFinished
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
@@ -28,13 +25,21 @@ CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, w
 end)
 
 function getCocoonTargetPos(targetPlant)
-	local dropAreaSize = targetPlant.DropArea.Size
+    local dropAreaSize
+    local dropAreaCFrame
+    if (targetPlant and targetPlant:FindFirstChild("DropArea")) then
+        dropAreaSize = targetPlant.DropArea.Size
+        dropAreaCFrame = targetPlant.DropArea.CFrame
+    else
+        dropAreaSize = Vector3.new(1, 15, 15)
+        dropAreaCFrame = CFrame.new(dropAreaSize)
+    end
 	local radius = math.min(dropAreaSize.Y, dropAreaSize.Z) / 2
 	local angle = math.random() * 2 * math.pi
 	local dist = radius * math.sqrt(math.random())
 	local offsetY = dist * math.cos(angle)
     local offsetZ = dist * math.sin(angle)
-	local surfacePointWorldPos = targetPlant.DropArea.CFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
+	local surfacePointWorldPos = dropAreaCFrame * Vector3.new(dropAreaSize.X / 2, offsetY, offsetZ)
 	local finalRestingPos = Vector3.new(
         surfacePointWorldPos.X,
         surfacePointWorldPos.Y + (2 / 2), --REDO FOR VARIABLE SIZED COCOONS, THE FIRST 2 IS THE SIZE--
@@ -89,22 +94,3 @@ function calculateFinalSilk(player)
 
     return finalSilkInfo
 end
-
-CocoonFinished.OnServerEvent:Connect(function(player, wormModel, targetPlant)
-    local plantData = PlantRegistry[targetPlant]
-
-    -- detect if cocoon is last
-    local lastCocoon
-    if (plantData["cocoonUses"] == 1) then
-		plantData["cocoonUses"] = 0
-		lastCocoon = true
-	else
-        plantData["module"]:depleteUse()
-		plantData["cocoonUses"] -= 1
-		lastCocoon = false
-	end
-
-	if (lastCocoon) then
-		plantData["module"]:Despawn(player)
-	end
-end)

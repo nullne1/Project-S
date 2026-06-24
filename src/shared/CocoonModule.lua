@@ -1,5 +1,6 @@
 local Cocoon = {}
 Cocoon.__index = Cocoon
+
 function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos)
 
     local self = setmetatable({}, Cocoon)

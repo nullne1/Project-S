@@ -5,27 +5,19 @@ local TweenService = game:GetService("TweenService")
 
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 local CocoonRegistry = require(ReplicatedStorage.Shared.GameData.CocoonRegistry)
+local PlantRegistry = require(game:GetService("ReplicatedStorage").Shared.GameData.PlantRegistry)
 
 local RenderTokenEffect = ReplicatedStorage.RemoteEvents.RenderTokenEffect
-local RaycastIgnore = ReplicatedStorage.RemoteEvents.RaycastIgnore
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 TokenRegistry.Abilities = {
     ["FireToken"] = function(player, farm, tokenPosition, targetPlant)
-        if (targetPlant) then
-            local ColorTween = TweenService:Create(
-                targetPlant,
-                TweenInfo.new(0.5, Enum.EasingStyle.Linear),
-                {Color = Color3.fromHex("#FF0000")}
-            )
-            ColorTween:Play()
+        local plantModule = PlantRegistry[targetPlant]
+        if (targetPlant and plantModule and plantModule.FireStacks == 0) then
+            plantModule:setFire()
+        elseif (targetPlant and plantModule and plantModule.FireStacks > 0) then
+            PlantRegistry[targetPlant].FireStacks += 1
         end
-    end,
-
-    ["SilkToken"] = function(player, farm, tokenPosition, targetPlant)
-        local finalSilkInfo = calculateFinalSilk(player, "SilkToken")
-        PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
-        CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
     end,
 
     ["CollectToken"] = function(player, farm, tokenPosition, targetPlant)
@@ -58,6 +50,12 @@ TokenRegistry.Abilities = {
             -- Tell the client to play the pink cylinder effect AND delete the physical meshes
             RenderTokenEffect:FireClient(player, "CollectToken", farm, tokenPosition, collectedIDs)
         end
+    end,
+
+    ["SilkToken"] = function(player, farm, tokenPosition, targetPlant)
+        local finalSilkInfo = calculateFinalSilk(player, "SilkToken")
+        PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
+        CollectedSilk:FireClient(player, tokenPosition, finalSilkInfo)
     end
 }
 

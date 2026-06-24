@@ -58,23 +58,25 @@ end)
 local activeTokensData = {}
 
 mouse.Move:Connect(function()
-    local mouseLocation = UserInputService:GetMouseLocation()
-    local unitRay = camera:ViewportPointToRay(mouseLocation.X, mouseLocation.Y)
-    local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
+    for i = 1, 10, 1 do
+        local mouseLocation = UserInputService:GetMouseLocation()
+        local unitRay = camera:ViewportPointToRay(mouseLocation.X, mouseLocation.Y)
+        local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
 
-    if raycastResult then
-        local hitPart = raycastResult.Instance
-        
-        -- Instead of checking the folder, we check if the part exists in our dictionary.
-        -- If it does, we instantly retrieve the correct targetPlant for this specific mesh.
-        local tokenTargetPlant = activeTokensData[hitPart]
-        
-        if tokenTargetPlant then
-            -- Remove it from the dictionary so it can't be collected twice
-            activeTokensData[hitPart] = nil
+        if raycastResult then
+            local hitPart = raycastResult.Instance
             
-            CollectedToken:FireServer(hitPart.Name, hitPart.Position, tokenTargetPlant)
-            hitPart:Destroy()
+            -- Instead of checking the folder, we check if the part exists in our dictionary.
+            -- If it does, we instantly retrieve the correct targetPlant for this specific mesh.
+            local tokenTargetPlant = activeTokensData[hitPart]
+            
+            if tokenTargetPlant then
+                -- Remove it from the dictionary so it can't be collected twice
+                activeTokensData[hitPart] = nil
+                
+                CollectedToken:FireServer(hitPart.Name, hitPart.Position, tokenTargetPlant)
+                hitPart:Destroy()
+            end
         end
     end
 end)
