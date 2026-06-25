@@ -24,6 +24,12 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.Mesh:PivotTo(spawnCFrame)
 	self.Farm = farm
 	self.FireStacks = 0
+	self.InitialFireTime = 3
+	self.StackAmount = 0.3
+	self.TweenTime = self.InitialFireTime
+
+	self.StartTime = 0
+	self.EndTime = 0
 	
 	self.DropArea = Instance.new("Part")
 	self.DropArea.Name = "DropArea"
@@ -36,7 +42,7 @@ function Plant.new(name, modelTemplate, spawnCFrame, farm) : table
 	self.DropArea.CFrame = CFrame.new(Vector3.new(self.Mesh.Position.X, farm.Floor.Position.Y, self.Mesh.Position.Z)) * CFrame.Angles(0, 0, math.rad(90))
 	self.DropArea.Parent = self.Mesh
 	
-	self.Uses = 50
+	self.Uses = 500
 	
 	local minX = 4.2
 	local minY = 3.2
@@ -56,19 +62,29 @@ end
 
 function Plant:setFire()
 	self.FireStacks = 1
+	
+	local startTime = os.time()
+	self.StartTime = startTime
+	self.EndTime = startTime + 8
 	while self.Uses and self.Uses > 0 do
-		print("hello")
 		self.Mesh.Color = Color3.fromHex("FF0000")
-
+		if (self.InitialFireTime - self.StackAmount * (self.FireStacks - 1) > 0) then
+			self.TweenTime = self.InitialFireTime - self.StackAmount * (self.FireStacks - 1)
+		end
+		
 		local RecoverTween = TweenService:Create(
 			self.Mesh,
-			TweenInfo.new(5 / self.FireStacks, Enum.EasingStyle.Linear),
+			TweenInfo.new(self.TweenTime, Enum.EasingStyle.Linear),
 			{Color = self.OriginalColor}
 		)
-
+		
 		self:depleteUse()
 		RecoverTween:Play()
 		RecoverTween.Completed:Wait()
+		if self.EndTime and os.time() >= self.EndTime then
+			self.FireStacks = 0
+			break
+		end
 	end
 end
 

@@ -11,12 +11,22 @@ local RenderTokenEffect = ReplicatedStorage.RemoteEvents.RenderTokenEffect
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 TokenRegistry.Abilities = {
+    ["WaterToken"] = function(player, farm, tokenPosition, targetPlant)
+        return
+    end,
+
     ["FireToken"] = function(player, farm, tokenPosition, targetPlant)
         local plantModule = PlantRegistry[targetPlant]
         if (targetPlant and plantModule and plantModule.FireStacks == 0) then
+            plantModule.FireStacks = 0
             plantModule:setFire()
+            
         elseif (targetPlant and plantModule and plantModule.FireStacks > 0) then
-            PlantRegistry[targetPlant].FireStacks += 1
+            plantModule.FireStacks += 1
+
+            local startTime = os.time()
+            plantModule.StartTime = startTime
+            plantModule.EndTime = startTime + 8
         end
     end,
 

@@ -4,7 +4,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local TokenModule = require(ReplicatedStorage:WaitForChild("Shared").TokenModule)
 
-local CollectedToken = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedToken
 local CocoonStartClient = ReplicatedStorage:WaitForChild("RemoteEvents").CocoonStartClient
 local RemoteRaycastIgnore= ReplicatedStorage:WaitForChild("RemoteEvents").RaycastIgnore
 local CollectedToken = ReplicatedStorage:WaitForChild("RemoteEvents").CollectedToken
@@ -13,13 +12,14 @@ local RaycastIgnore = ReplicatedStorage:WaitForChild("BindableEvents").RaycastIg
 
 local camera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 local mouse = localPlayer:GetMouse()
 
 -- raycast filter
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 local ignoredInstances = {
-	localPlayer.Character,
+	character:GetChildren(),
 	workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
 	workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
 	workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
@@ -30,7 +30,7 @@ raycastParams.FilterDescendantsInstances = ignoredInstances
 RaycastIgnore.Event:Connect(function(part)
     if (#ignoredInstances >= 10000) then
         ignoredInstances = {
-            localPlayer.Character,
+            character:GetChildren(),
             workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
@@ -44,7 +44,7 @@ end)
 RemoteRaycastIgnore.OnClientEvent:Connect(function(part)
     if (#ignoredInstances >= 10000) then
         ignoredInstances = {
-            localPlayer.Character,
+            character:GetChildren(),
             workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
@@ -58,7 +58,7 @@ end)
 local activeTokensData = {}
 
 mouse.Move:Connect(function()
-    for i = 1, 10, 1 do
+    for i = 1, 3, 1 do
         local mouseLocation = UserInputService:GetMouseLocation()
         local unitRay = camera:ViewportPointToRay(mouseLocation.X, mouseLocation.Y)
         local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
