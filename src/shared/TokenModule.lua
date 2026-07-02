@@ -19,7 +19,7 @@ function Token.new(wormCFrame, farm, player, type, targetPlant)
 
 	-- === THE ANIMATION SETTINGS ===
     -- math.rad(360) means 1 full rotation per second. Multiply it to go faster!
-    local spinSpeed = math.rad(360)
+    local spinSpeed = math.rad(180)
     local floatSpeed = 0 -- Moves up 0.5 studs per second
 	local RunService = game:GetService("RunService")
     -- === THE ANIMATION LOOP ===

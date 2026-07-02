@@ -66,6 +66,10 @@ function Plant:setFire()
 	local startTime = os.time()
 	self.StartTime = startTime
 	self.EndTime = startTime + 8
+	local fire = Instance.new("Fire")
+	fire.Heat = 10
+	fire.Name = "fire"
+	fire.Parent = self.Mesh
 	while self.Uses and self.Uses > 0 do
 		self.Mesh.Color = Color3.fromHex("FF0000")
 		if (self.InitialFireTime - self.StackAmount * (self.FireStacks - 1) > 0) then
@@ -82,6 +86,7 @@ function Plant:setFire()
 		RecoverTween:Play()
 		RecoverTween.Completed:Wait()
 		if self.EndTime and os.time() >= self.EndTime then
+			self.Mesh:FindFirstChild("fire"):Destroy()
 			self.FireStacks = 0
 			break
 		end

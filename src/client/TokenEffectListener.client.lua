@@ -1,14 +1,24 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local RenderTokenEffect = ReplicatedStorage:WaitForChild("RemoteEvents").RenderTokenEffect
+local ActivateTokenClient = ReplicatedStorage:WaitForChild("RemoteFunctions").ActivateTokenClient
 
 local RaycastIgnore = ReplicatedStorage:WaitForChild("BindableEvents").RaycastIgnore
 
 local ClientCocoonFolder = workspace:WaitForChild("Assets").Parts.Balls
 
-RenderTokenEffect.OnClientEvent:Connect(function(tokenType, farm, tokenPosition, collectedIDs)
-    if (tokenType == "CollectToken") then
+ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, collectedIDs, collectedID)
+    if (tokenType == "WaterToken") then
+        local cocoonMesh = ClientCocoonFolder:FindFirstChild(collectedID)
+
+        if (cocoonMesh) then
+            local cocoonPos = cocoonMesh.Position
+            cocoonMesh:Destroy()
+            return cocoonPos
+        end  
+
+        return nil
+    elseif (tokenType == "CollectToken") then
         local TweenShape = Instance.new("Part")
         TweenShape.Shape = "Cylinder"
         TweenShape.Anchored = true
@@ -45,5 +55,8 @@ RenderTokenEffect.OnClientEvent:Connect(function(tokenType, farm, tokenPosition,
                 cocoonMesh:Destroy()
             end    
         end
+        return nil
+    else 
+        return nil
     end
-end)
+end
