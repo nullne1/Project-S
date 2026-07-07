@@ -14,13 +14,13 @@ local DEFAULT_DATA = {
     -- silk
     silk = 0,
     items = {},
-    silkWorms = {basicWorm = 10},
-    peristentWorms = {basicWorm = 10},
+    silkWorms = {basicWorm = math.huge},
+    peristentWorms = {basicWorm = math.huge},
     flatSilk = 50,
 
     critChance = 0.05,
     critBonus = 2,
-    spawnSpeed = 1 / 1,
+    spawnSpeed = 1 / 20,
 
     lastFarmEntered = nil
 }
@@ -127,7 +127,7 @@ local function removePlayerEntities(player)
     end
 end
 
-Players.PlayerRemoving:Connect(function(player)
+local function onPlayerRemoving(player)
     removePlayerEntities(player)
     local key = "User_" .. player.UserId
     local success, err = pcall(function()
@@ -138,39 +138,31 @@ Players.PlayerRemoving:Connect(function(player)
 	if (not success) then
 		warn("Could not save data: " .. err)
 	end
-
-    print("exit")
     PlayerDataModule.removeData(player)
-end)
+end
+
+Players.PlayerRemoving:Connect(onPlayerRemoving)
 
 game:BindToClose(function()
-    if game:GetService("RunService"):IsStudio() then
-        -- A simple wait is usually enough for Studio testing
-        task.wait(3)
-    else
-        -- In a live game, loop through any remaining players and save their data
-        for _, player in ipairs(Players:GetPlayers()) do
-            -- Call your save function here just to be safe
-            local key = "User_" .. player.UserId
-            pcall(function()
-                DataStore:SetAsync(key, PlayerDataModule.getData(player))
-            end)
-        end
+    for _, player in ipairs(Players:GetPlayers()) do
+        -- Wrap in a coroutine so all players save simultaneously, bypassing the 30-second shutdown limit
+        coroutine.wrap(onPlayerRemoving)(player)
     end
 end)
 
-local function simpleDeepCopy(original)
-    local copy = {}
+
+-- local function simpleDeepCopy(original)
+--     local copy = {}
     
-    for key, value in pairs(original) do
-        -- If the value is another table, pause and copy that one too!
-        if type(value) == "table" then
-            copy[key] = simpleDeepCopy(value)
-        else
-            -- Otherwise, just copy the raw value
-            copy[key] = value
-        end
-    end
+--     for key, value in pairs(original) do
+--         -- If the value is another table, pause and copy that one too!
+--         if type(value) == "table" then
+--             copy[key] = simpleDeepCopy(value)
+--         else
+--             -- Otherwise, just copy the raw value
+--             copy[key] = value
+--         end
+--     end
     
-    return copy
-end
+--     return copy
+-- end

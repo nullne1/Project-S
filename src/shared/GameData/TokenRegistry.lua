@@ -1,5 +1,6 @@
 local TokenRegistry = {}
 
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -11,30 +12,41 @@ local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 local ActivateTokenClient = ReplicatedStorage.RemoteFunctions.ActivateTokenClient
 
+
 TokenRegistry.Abilities = {
     ["WaterToken"] = function(player, farm, tokenPosition, targetPlant)
         local bounces = math.huge
         local dropAreaSize = farm.Plants:GetChildren()[1].DropArea.Size.Y
-        local bounceRadius = (dropAreaSize / 2) -- hard coded
+        local bounceRadius = (dropAreaSize / 2)
         local playerCocoons = CocoonRegistry[player.UserId]
         local lastCocoonPos = nil
-        local cocoonNotFound = false
+        local cocoonNotFound = true
+        local waveID = HttpService:GenerateGUID(false)
+        local waveSpeed = 0
 
         for i = 1, bounces, 1 do
-            print(i)
             -- detects based on position around token on the first iteration, last cocoon for every other iteration
             if (playerCocoons and i == 1) then
-                for cocoonID, cocoonPosition in pairs(playerCocoons) do
-                    local distance = (targetPlant.Position - cocoonPosition).Magnitude
+                -- looks for valid cocoon
+                for cocoonID, cocoonData in pairs(playerCocoons) do
+                    local distance = (Vector3.new(targetPlant.Position.X, 0, targetPlant.Position.Z) - Vector3.new(cocoonData["TargetPos"].X, 0, cocoonData["TargetPos"].Z)).Magnitude
+                    local WaterTokenInfo = {
+                        WaveID = waveID,
+                        CollectedID = cocoonID,
+                        LastBounce = false,
+                        WaveSpeed = waveSpeed
+                    }
                     
                     if (distance <= bounceRadius) then
-                        lastCocoonPos = ActivateTokenClient:InvokeClient(player, "WaterToken", farm, tokenPosition, nil, cocoonID)
+                        playerCocoons[cocoonID] = nil
+                        lastCocoonPos = ActivateTokenClient:InvokeClient(player, "WaterToken", farm, tokenPosition, nil, WaterTokenInfo)
                         
                         local finalSilkInfo = calculateFinalSilk(player, "WaterToken")
-                        CollectedSilk:FireClient(player, cocoonPosition, finalSilkInfo)
+                        PlayerDataModule.addWorm(player, "basicWorm", 1)
+                        PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
+                        CollectedSilk:FireClient(player, cocoonData["TargetPos"], finalSilkInfo)
 
                         -- Remove it from the virtual registry
-                        playerCocoons[cocoonID] = nil
                         cocoonNotFound = false
                         break
                     end
@@ -43,17 +55,27 @@ TokenRegistry.Abilities = {
             elseif (not lastCocoonPos or cocoonNotFound) then
                 break
             elseif (lastCocoonPos) then
-                for cocoonID, cocoonPosition in pairs(playerCocoons) do
-                    local distance = (lastCocoonPos - cocoonPosition).Magnitude
+                -- mid wave, looks for cocoon based on last cocoon's position
+                for cocoonID, cocoonData in pairs(playerCocoons) do
+                    local distance = (Vector3.new(lastCocoonPos.X, 0, lastCocoonPos.Z) - Vector3.new(cocoonData["TargetPos"].X, 0, cocoonData["TargetPos"].Z)).Magnitude
+
+                    local WaterTokenInfo = {
+                        WaveID = waveID,
+                        CollectedID = cocoonID,
+                        LastBounce = false,
+                        WaveSpeed = waveSpeed
+                    }
                     
                     if (distance <= bounceRadius) then
-                        lastCocoonPos = ActivateTokenClient:InvokeClient(player, "WaterToken", farm, tokenPosition, nil, cocoonID)
+                        playerCocoons[cocoonID] = nil
+                        lastCocoonPos = ActivateTokenClient:InvokeClient(player, "WaterToken", farm, tokenPosition, nil, WaterTokenInfo)
                         
                         local finalSilkInfo = calculateFinalSilk(player, "WaterToken")
-                        CollectedSilk:FireClient(player, cocoonPosition, finalSilkInfo)
+                        PlayerDataModule.addWorm(player, "basicWorm", 1)
+                        PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
+                        CollectedSilk:FireClient(player, cocoonData["TargetPos"], finalSilkInfo)
 
                         -- Remove it from the virtual registry
-                        playerCocoons[cocoonID] = nil
                         cocoonNotFound = false
                         break
                     end
@@ -62,7 +84,15 @@ TokenRegistry.Abilities = {
             else
                 break
             end
+            task.wait(waveSpeed)
         end
+        local WaterTokenInfo = {
+            WaveID = waveID,
+            CollectedID = nil,
+            LastBounce = true,
+            WaveSpeed = waveSpeed
+        }
+        ActivateTokenClient:InvokeClient(player, "WaterToken", farm, tokenPosition, nil, WaterTokenInfo)
     end,
 
     ["FireToken"] = function(player, farm, tokenPosition, targetPlant)
@@ -88,15 +118,16 @@ TokenRegistry.Abilities = {
         local collectedIDs = {}
 
         if playerCocoons then
-            for cocoonID, cocoonPosition in pairs(playerCocoons) do
-                local distance = (targetPlant.Position - cocoonPosition).Magnitude
+            for cocoonID, cocoonData in pairs(playerCocoons) do
+                local distance = (targetPlant.Position - cocoonData["TargetPos"]).Magnitude
                 
                 if (distance <= collectRadius) then
                     wormsCollected += 1
                     table.insert(collectedIDs, cocoonID)
                     
                     local finalSilkInfo = calculateFinalSilk(player, "CollectToken")
-                    CollectedSilk:FireClient(player, cocoonPosition, finalSilkInfo)
+                    PlayerDataModule.addSilk(player, finalSilkInfo["finalSilk"])
+                    CollectedSilk:FireClient(player, cocoonData["TargetPos"], finalSilkInfo)
 
                     -- Remove it from the virtual registry
                     playerCocoons[cocoonID] = nil

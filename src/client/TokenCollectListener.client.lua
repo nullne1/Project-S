@@ -14,13 +14,42 @@ local camera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
 local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 local mouse = localPlayer:GetMouse()
+local characterParts = {}
+
+-- A helper function so we don't write the same code twice
+local function processPart(obj)
+    if obj:IsA("BasePart") then
+        table.insert(characterParts, obj)
+    end
+end
+
+local function onCharacterAdded(character)
+    -- Clear out the old parts if the player just respawned
+    table.clear(characterParts)
+
+    -- 1. Grab anything that somehow managed to load instantly
+    for _, obj in pairs(character:GetDescendants()) do
+        processPart(obj)
+    end
+
+    -- 2. The Magic Fix: Listen for parts that load in a split-second late.
+    -- This handles StreamingEnabled, slow network connections, and new hats/tools.
+    character.DescendantAdded:Connect(processPart)
+end
+
+-- Catch the character if it already loaded before the script ran
+if localPlayer.Character then
+    onCharacterAdded(localPlayer.Character)
+end
+
+-- Catch the character every time they respawn
+localPlayer.CharacterAdded:Connect(onCharacterAdded)
 
 -- raycast filter
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 local ignoredInstances = {
-    character:GetChildren(),
-	character:GetDescendants(),
+    characterParts,
 	workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
 	workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
 	workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
@@ -31,8 +60,7 @@ raycastParams.FilterDescendantsInstances = ignoredInstances
 RaycastIgnore.Event:Connect(function(part)
     if (#ignoredInstances >= 10000) then
         ignoredInstances = {
-            character:GetChildren(),
-            character:GetDescendants(),
+            characterParts,
             workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")
@@ -46,8 +74,7 @@ end)
 RemoteRaycastIgnore.OnClientEvent:Connect(function(part)
     if (#ignoredInstances >= 10000) then
         ignoredInstances = {
-            character:GetChildren(),
-            character:GetDescendants(),
+            characterParts,
             workspace.Assets.Parts.Farms.Farm1:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm2:WaitForChild("FarmArea"),
             workspace.Assets.Parts.Farms.Farm3:WaitForChild("FarmArea")

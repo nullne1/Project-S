@@ -19,7 +19,8 @@ CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, w
     end
 
     local targetPos = getCocoonTargetPos(targetPlant)
-    CocoonRegistry[player.UserId][cocoonID] = targetPos
+    CocoonRegistry[player.UserId][cocoonID] = {}
+    CocoonRegistry[player.UserId][cocoonID]["TargetPos"] = targetPos
 
     CocoonStartClient:FireClient(player, cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills)
 end)
@@ -57,7 +58,7 @@ CollectedCocoon.OnServerEvent:Connect(function(player, cocoonID, type)
         return
     end
 
-    local cocoonPosition = playerCocoons[cocoonID]
+    local cocoonPosition = playerCocoons[cocoonID]["TargetPos"]
 
     local character = player.Character
     if character and character.PrimaryPart then

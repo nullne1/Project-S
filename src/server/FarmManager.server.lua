@@ -17,8 +17,8 @@ local farmsFolder = workspace.Assets.Parts.Farms
 local plantTemplates = ServerStorage.Bushes:GetChildren()
 
 local rng = Random.new()
-local MAX_TREES_PER_ZONE = 50
-local MIN_SPACING = 10	
+local MAX_TREES_PER_ZONE = math.huge
+local MIN_SPACING = 1
 local TREE_DROP_RADIUS = 10
 
 local function zoneSetup() 

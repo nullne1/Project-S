@@ -103,6 +103,9 @@ local function startWorm(spawner, player, farm)
                 worm:goToLeaf()
                 pcall(function()
                     local tokenSkills = WormRegistry.Worms[wormType]["TokenSkills"]
+                    for i = 1, 10, 1 do
+                        CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, nil)
+                    end
                     CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
                 end)
                 worm:pupate()
