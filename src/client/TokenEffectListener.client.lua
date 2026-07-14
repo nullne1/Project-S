@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local ActivateTokenClient = ReplicatedStorage:WaitForChild("RemoteFunctions").ActivateTokenClient
@@ -14,6 +15,7 @@ local localPlayer = Players.LocalPlayer
 local activeWaves = {}
 
 local function magnetize(player, shouldDespawn, cocoon)
+    cocoon.CanTouch = false
     local character = player.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local rootPart = character.HumanoidRootPart
@@ -24,7 +26,7 @@ local function magnetize(player, shouldDespawn, cocoon)
     -- Phase 1: Send the cocoon up
     local popTweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local popTween = TweenService:Create(cocoon, popTweenInfo, {
-        Position = cocoon.Position + Vector3.new(0, 5, 0)
+        CFrame = cocoon.CFrame * CFrame.new(0, 7, 0)
     })
     popTween:Play()
     popTween.Completed:Wait()
@@ -58,7 +60,7 @@ local function magnetize(player, shouldDespawn, cocoon)
     end)
 end
 
-local function createPulseBeam(sourcePart, targetPart)
+local function createPulseBeam(sourcePart, targetPart, waveSpeed)
 	local att0 = Instance.new("Attachment")
 	att0.Parent = sourcePart
 
@@ -70,22 +72,56 @@ local function createPulseBeam(sourcePart, targetPart)
 	beam.Attachment1 = att1
 	
 	-- Visual styling for a glowing energy effect
-	beam.Texture = "rbxassetid://1417030805" 
+	beam.Texture = "rbxassetid://2890349162" 
 	beam.TextureMode = Enum.TextureMode.Stretch
+    beam.TextureLength = 0.1
 	beam.LightEmission = 0
 	beam.LightInfluence = 0 
-	
-	beam.Color = ColorSequence.new(Color3.fromRGB(20, 140, 220)) -- Crimson
-	beam.Width0 = 5
-	beam.Width1 = 5
-	beam.TextureSpeed = 0
+    
+	beam.Transparency = NumberSequence.new(1)
+
+	beam.Width0 = 3
+	beam.Width1 = 3
+    beam.Segments = 100
+	beam.TextureSpeed = 1
 	
 	-- Adding a slight arc
-	beam.CurveSize0 = 0
-	beam.CurveSize1 = 0
+	beam.CurveSize0 = 10
+	beam.CurveSize1 = 10
+    beam.FaceCamera = true
 	
-	beam.FaceCamera = true
-	beam.Parent = sourcePart
+    beam.Parent = sourcePart
+
+    task.spawn(function()  
+        local proxy = Instance.new("NumberValue")
+        proxy.Value = 0.001
+
+        local tweenInfo = TweenInfo.new(
+            waveSpeed, 
+            Enum.EasingStyle.Linear,
+            Enum.EasingDirection.InOut
+        )
+
+        local wipeTween = TweenService:Create(proxy, tweenInfo, {Value = 0.999})
+
+        local connection
+        connection = RunService.RenderStepped:Connect(function()
+            local t = proxy.Value
+            beam.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0),
+                NumberSequenceKeypoint.new(t, 1),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+        end)
+
+        wipeTween.Completed:Connect(function()
+            connection:Disconnect()
+            beam.Transparency = NumberSequence.new(0) 
+            proxy:Destroy()
+        end)
+
+        wipeTween:Play()
+    end)
 	
 	return beam
 end
@@ -106,10 +142,11 @@ ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, co
         if (lastBounce) then
             task.spawn(function()
                 for i = 1, #currentWave, 1 do
-                    local cocoon = currentWave[i]
-                    if (cocoon) then
-                        cocoon:Destroy()
+                    local part = currentWave[i]
+                    if (part) then
+                        part:Destroy()
                     end
+                    task.wait(waveSpeed)
                 end        
                 activeWaves[waveID] = nil
             end)
@@ -126,12 +163,49 @@ ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, co
         end
         
         if (cocoonMesh) then
-            if (#currentWave > 7) then
-                if (currentWave[1]) then
-                    currentWave[1]:Destroy()
-                    table.remove(currentWave, 1)
+            task.spawn(function()
+                if (#currentWave >= 5) then
+                    if (currentWave[1]) then
+                        local beam = currentWave[1]:FindFirstChild("Beam")
+                        if (beam) then    
+                            local proxy = Instance.new("NumberValue")
+                            -- Start just above 0 to prevent keypoint time overlap
+                            proxy.Value = 0.001
+
+                            local tweenInfo = TweenInfo.new(
+                                waveSpeed, -- Duration in seconds
+                                Enum.EasingStyle.Linear,
+                                Enum.EasingDirection.InOut
+                            )
+
+                            local wipeTween = TweenService:Create(proxy, tweenInfo, {Value = 0.999})
+
+                            local connection
+                            connection = RunService.RenderStepped:Connect(function()
+                                local t = proxy.Value
+                                
+                                beam.Transparency = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, 1), -- Transparent behind the sweep
+                                    NumberSequenceKeypoint.new(t, 1), -- Sharp transition to solid at the sweep position
+                                    NumberSequenceKeypoint.new(1, 0)  -- Solid ahead of the sweep
+                                })
+                            end)
+
+                            wipeTween.Completed:Connect(function()
+                                connection:Disconnect()
+                                -- Snap to fully transparent once the animation finishes
+                                beam.Transparency = NumberSequence.new(1) 
+                                proxy:Destroy()
+                            end)
+
+                            wipeTween:Play()
+                            wipeTween.Completed:Wait()
+                            currentWave[1]:Destroy()
+                            table.remove(currentWave, 1)
+                        end
+                    end
                 end
-            end
+            end)
             local tempPart = Instance.new("Part")
             if (currentWave) then
                 tempPart.Anchored = true
@@ -141,11 +215,13 @@ ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, co
                 tempPart.Transparency = 1
                 tempPart.Position = cocoonMesh.Position
                 tempPart.Parent = workspace
-                createPulseBeam(currentWave[#currentWave], tempPart)
+                createPulseBeam(currentWave[#currentWave], tempPart, waveSpeed)
             end
             
             cocoonPos = cocoonMesh.Position
-            magnetize(localPlayer, false, cocoonMesh)
+            task.spawn(function()
+                magnetize(localPlayer, false, cocoonMesh)
+            end)
             table.insert(currentWave, tempPart)
         end  
 

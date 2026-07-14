@@ -22,6 +22,7 @@ function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player)
 end
 
 function Cocoon:magnetize(player, shouldDespawn)
+    self.Ball.CanTouch = false
     local character = player.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local rootPart = character.HumanoidRootPart
@@ -34,7 +35,7 @@ function Cocoon:magnetize(player, shouldDespawn)
     -- Phase 1: Send the cocoon up
     local popTweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local popTween = TweenService:Create(self.Ball, popTweenInfo, {
-        Position = self.Ball.Position + Vector3.new(0, 5, 0)
+        CFrame = self.Ball.CFrame * CFrame.new(0, 7, 0)
     })
     popTween:Play()
     popTween.Completed:Wait()

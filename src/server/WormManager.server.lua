@@ -97,7 +97,6 @@ local function startWorm(spawner, player, farm)
             end
 		end)
 
-        -- run tweens on separate thread
         task.spawn(function()
             if (worm) then
                 worm:goToLeaf()
