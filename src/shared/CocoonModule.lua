@@ -1,7 +1,12 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CocoonActivated = ReplicatedStorage:WaitForChild("RemoteEvents").CocoonActivated
+local DropMoth = ReplicatedStorage:WaitForChild("RemoteEvents").DropMoth
+
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player)
+function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player, moth)
     local self = setmetatable({}, Cocoon)
 	
 	self.CocoonID = cocoonID
@@ -10,11 +15,14 @@ function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player)
 	self.TargetPos = targetPos
 
 	self.Ball = game:GetService("ReplicatedStorage").Balls.BasicBall:Clone()
+    self.Ball.CanQuery = false
     self.Ball.Transparency = 1
 	self.Ball.Anchored = true
     self.Ball.Parent = workspace.Assets.Parts.Balls
     self.Ball.CFrame = wormCFrame
 	self.Ball.Name = self.CocoonID
+
+    self.Moth = moth
 
 	self.CanBeCollected = false
 
@@ -23,6 +31,7 @@ end
 
 function Cocoon:magnetize(player, shouldDespawn)
     self.Ball.CanTouch = false
+    self.Ball.CanQuery = false
     local character = player.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local rootPart = character.HumanoidRootPart
@@ -92,6 +101,9 @@ function Cocoon:launch()
 		self.Ball.Position = currentPos
 		
 		if (t >= 1 or not self.Ball) then
+            self.Ball.CanQuery = true
+            CocoonActivated:FireServer(self.CocoonID)
+            DropMoth:FireServer(self.Moth)
 			connection:Disconnect() -- Clean up the loop
 			self.Ball.Position = targetPos
 			self.CanBeCollected = true

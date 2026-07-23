@@ -16,6 +16,7 @@ local activeWaves = {}
 
 local function magnetize(player, shouldDespawn, cocoon)
     cocoon.CanTouch = false
+    cocoon.CanQuery = false
     local character = player.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local rootPart = character.HumanoidRootPart
@@ -72,23 +73,31 @@ local function createPulseBeam(sourcePart, targetPart, waveSpeed)
 	beam.Attachment1 = att1
 	
 	-- Visual styling for a glowing energy effect
-	beam.Texture = "rbxassetid://2890349162" 
+	beam.Texture = "rbxassetid://122390521063226" 
 	beam.TextureMode = Enum.TextureMode.Stretch
-    beam.TextureLength = 0.1
-	beam.LightEmission = 0
-	beam.LightInfluence = 0 
+    beam.TextureLength = 0.2
+	beam.LightEmission = 0.2
+	beam.LightInfluence = 0
     
 	beam.Transparency = NumberSequence.new(1)
 
-	beam.Width0 = 3
-	beam.Width1 = 3
+	beam.Width0 = 5
+	beam.Width1 = 5
     beam.Segments = 100
-	beam.TextureSpeed = 1
+    if (waveSpeed < 1) then
+        beam.TextureSpeed = 1 - waveSpeed
+    else
+        beam.TextureSpeed = 0.1
+    end
 	
 	-- Adding a slight arc
 	beam.CurveSize0 = 10
 	beam.CurveSize1 = 10
-    beam.FaceCamera = true
+    if (waveSpeed <= 0.4) then
+        beam.FaceCamera = true
+    else
+        beam.FaceCamera = false
+    end
 	
     beam.Parent = sourcePart
 
@@ -194,7 +203,7 @@ ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, co
                             wipeTween.Completed:Connect(function()
                                 connection:Disconnect()
                                 -- Snap to fully transparent once the animation finishes
-                                beam.Transparency = NumberSequence.new(1) 
+                                -- beam.Transparency = NumberSequence.new(1) 
                                 proxy:Destroy()
                             end)
 
@@ -219,9 +228,11 @@ ActivateTokenClient.OnClientInvoke = function(tokenType, farm, tokenPosition, co
             end
             
             cocoonPos = cocoonMesh.Position
+
             task.spawn(function()
                 magnetize(localPlayer, false, cocoonMesh)
             end)
+
             table.insert(currentWave, tempPart)
         end  
 

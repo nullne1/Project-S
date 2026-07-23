@@ -4,13 +4,20 @@ local HttpService = game:GetService("HttpService")
 
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 local CocoonRegistry = require(ReplicatedStorage.Shared.GameData.CocoonRegistry)
+local MothDropRegistry = require(ReplicatedStorage.Shared.GameData.MothDropRegistry)
 
+local CocoonActivated = ReplicatedStorage.RemoteEvents.CocoonActivated
 local CocoonStartClient = ReplicatedStorage.RemoteEvents.CocoonStartClient
-
 local CollectedCocoon = ReplicatedStorage.RemoteEvents.CollectedCocoon
 local CollectedSilk = ReplicatedStorage.RemoteEvents.CollectedSilk
 
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
+
+CocoonActivated.OnServerEvent:Connect(function(player, cocoonID)
+    if (CocoonRegistry[player.UserId][cocoonID]) then
+        CocoonRegistry[player.UserId][cocoonID]["Active"] = true
+    end
+end)
 
 CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, wormCFrame, tokenSkills)
     local cocoonID = HttpService:GenerateGUID(false)
@@ -18,11 +25,24 @@ CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, w
         CocoonRegistry[player.UserId] = {}
     end
 
+    local droppedMoth = nil
+    local counter = 0
+    local randNum = math.random()
+
+    for moth, dropChance in MothDropRegistry["DropChances"] do
+        counter += dropChance
+        if (randNum <= counter) then
+            droppedMoth = moth
+            break
+        end
+    end
+
     local targetPos = getCocoonTargetPos(targetPlant)
     CocoonRegistry[player.UserId][cocoonID] = {}
     CocoonRegistry[player.UserId][cocoonID]["TargetPos"] = targetPos
+    CocoonRegistry[player.UserId][cocoonID]["Active"] = false
 
-    CocoonStartClient:FireClient(player, cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills)
+    CocoonStartClient:FireClient(player, cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills, droppedMoth)
 end)
 
 function getCocoonTargetPos(targetPlant)
