@@ -38,7 +38,9 @@ invButton.MouseButton1Click:Connect(function()
 end)
 
 CollectedSilk.OnClientEvent:Connect(function(startPos, silkInfo)
-    silkText.Text += silkInfo["finalSilk"]
+    if (silkInfo) then
+        silkText.Text += silkInfo["finalSilk"]
+    end
 end)
 
 UsedWorm.OnClientEvent:Connect(function()

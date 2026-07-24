@@ -13,7 +13,7 @@ local playerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local playerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
 local CocoonStart = ServerStorage.BindableEvents.CocoonStart
 local SpawnReady = ServerStorage.BindableEvents.SpawnReady
-
+local WormArrived = ServerStorage.BindableEvents.WormArrived
 
 local playerCooldowns = {}
 local activeWorms = {}
@@ -45,7 +45,8 @@ local function findPlant(farm)
 		table.remove(indexArray, randomIndexIndex)
 		local plantMesh = plantArray[randomIndex]
 		local plantModule = PlantRegistry[plantMesh]
-		if (plantModule and plantModule.Uses > 0) then
+		if (plantModule and plantModule.RealTimeUses > 0) then
+            plantModule.RealTimeUses -= 1
 			return plantModule
 		end
 	end
@@ -100,12 +101,17 @@ local function startWorm(spawner, player, farm)
         task.spawn(function()
             if (worm) then
                 worm:goToLeaf()
+                WormArrived:Fire(worm.TargetPlant)
+                local statusEffect
+                if (plantModule.OnFire) then
+                    statusEffect = "Fire"
+                end
                 pcall(function()
                     local tokenSkills = WormRegistry.Worms[wormType]["TokenSkills"]
                     for i = 1, 10, 1 do
-                        CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, nil)
+                        CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, nil, statusEffect)
                     end
-                    CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills)
+                    CocoonStart:Fire(player, wormType, worm.Model, worm.Farm, worm.TargetPlant, worm.Model.PrimaryPart.CFrame, tokenSkills, statusEffect)
                 end)
                 worm:pupate()
             end
@@ -210,8 +216,5 @@ local function setupSpawner(spawner)
         playerCurrentFarm[player] = nil
     end)
 end
-
-
-
 
 CollectionService:GetInstanceAddedSignal("WormSpawner"):Connect(setupSpawner)

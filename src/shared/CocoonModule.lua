@@ -6,13 +6,15 @@ local DropMoth = ReplicatedStorage:WaitForChild("RemoteEvents").DropMoth
 local Cocoon = {}
 Cocoon.__index = Cocoon
 
-function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player, moth)
+function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, moth, statusEffect)
     local self = setmetatable({}, Cocoon)
 	
 	self.CocoonID = cocoonID
     self.Farm = farm
 	self.TargetPlant = targetPlant
 	self.TargetPos = targetPos
+    self.Moth = moth
+    self.StatusEffect = statusEffect
 
 	self.Ball = game:GetService("ReplicatedStorage").Balls.BasicBall:Clone()
     self.Ball.CanQuery = false
@@ -22,7 +24,6 @@ function Cocoon.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, player, 
     self.Ball.CFrame = wormCFrame
 	self.Ball.Name = self.CocoonID
 
-    self.Moth = moth
 
 	self.CanBeCollected = false
 
@@ -117,10 +118,18 @@ function Cocoon:spinCocoon()
         Enum.EasingStyle.Linear,
         Enum.EasingDirection.In
 	)
+
+    local color = Color3.new(163, 162, 165)
+    print(self.StatusEffect)
+    if (self.StatusEffect == "Fire") then
+        color = Color3.fromRGB(255, 0, 0)
+    end
+
     local spinCocoonTween = game:GetService("TweenService"):Create(self.Ball, linearTweenInfo, {
 		Transparency = 0, 
 		Position = Vector3.new(self.Ball.Position.X, self.Ball.Position.Y + 0.5, self.Ball.Position.Z),
-		Size = Vector3.new(2, 2, 2)
+		Size = Vector3.new(2, 2, 2),
+        Color = color
 	})
 
     spinCocoonTween:Play()

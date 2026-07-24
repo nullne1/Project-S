@@ -34,7 +34,7 @@ TokenRegistry.Abilities = {
                     local cocoonActive = cocoonData["Active"]
                     if (cocoonActive) then
                         local cocoonTargetPos = cocoonData["TargetPos"]
-                        local distance = (Vector3.new(targetPlant.Position.X, targetPlant.Position.Y, targetPlant.Position.Z) - Vector3.new(cocoonTargetPos.X, cocoonTargetPos.Y, cocoonTargetPos.Z)).Magnitude
+                        local distance = (Vector3.new(tokenPosition.X, 0, tokenPosition.Z) - Vector3.new(cocoonTargetPos.X, 0, cocoonTargetPos.Z)).Magnitude
                         local WaterTokenInfo = {
                             WaveID = waveID,
                             CollectedID = cocoonID,
@@ -67,7 +67,7 @@ TokenRegistry.Abilities = {
                     local cocoonActive = cocoonData["Active"]
                     if (cocoonActive) then
                         local cocoonTargetPos = cocoonData["TargetPos"]
-                        local distance = (Vector3.new(lastCocoonPos.X, targetPlant.Position.Y, lastCocoonPos.Z) - Vector3.new(cocoonTargetPos.X, cocoonTargetPos.Y, cocoonTargetPos.Z)).Magnitude
+                        local distance = (Vector3.new(lastCocoonPos.X, 0, lastCocoonPos.Z) - Vector3.new(cocoonTargetPos.X, 0, cocoonTargetPos.Z)).Magnitude
 
                         local WaterTokenInfo = {
                             WaveID = waveID,
@@ -112,14 +112,12 @@ TokenRegistry.Abilities = {
         local plantModule = PlantRegistry[targetPlant]
         if (targetPlant and plantModule and plantModule.FireStacks == 0) then
             plantModule.FireStacks = 0
+            plantModule.RealTimeUses -= 1
             plantModule:setFire()
             
         elseif (targetPlant and plantModule and plantModule.FireStacks > 0) then
             plantModule.FireStacks += 1
-
-            local startTime = os.time()
-            plantModule.StartTime = startTime
-            plantModule.EndTime = startTime + 8
+            plantModule.EndTime += 8
         end
     end,
 
@@ -135,7 +133,7 @@ TokenRegistry.Abilities = {
                 local cocoonActive = cocoonData["Active"]
                 if (cocoonActive) then
                     local cocoonTargetPos = cocoonData["TargetPos"]
-                    local distance = (targetPlant.Position - cocoonTargetPos).Magnitude
+                    local distance = (tokenPosition - cocoonTargetPos).Magnitude
                     
                     if (distance <= collectRadius) then
                         wormsCollected += 1
@@ -174,6 +172,9 @@ function calculateFinalSilk(player, token)
 
     local rand = math.random()
     if (token == "SilkToken" or rand <= PlayerDataModule.getBasicData(player, "critChance")) then
+        finalSilk += finalSilk * PlayerDataModule.getBasicData(player, "critBonus")
+        finalSilkInfo["crit"] = true
+    elseif (rand <= PlayerDataModule.getBasicData(player, "critChance")) then
         finalSilk += finalSilk * PlayerDataModule.getBasicData(player, "critBonus")
         finalSilkInfo["crit"] = true
     else

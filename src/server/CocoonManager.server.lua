@@ -19,7 +19,7 @@ CocoonActivated.OnServerEvent:Connect(function(player, cocoonID)
     end
 end)
 
-CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, wormCFrame, tokenSkills)
+CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, wormCFrame, tokenSkills, statusEffect)
     local cocoonID = HttpService:GenerateGUID(false)
     if not CocoonRegistry[player.UserId] then
         CocoonRegistry[player.UserId] = {}
@@ -41,8 +41,9 @@ CocoonStart.Event:Connect(function(player, type, wormModel, farm, targetPlant, w
     CocoonRegistry[player.UserId][cocoonID] = {}
     CocoonRegistry[player.UserId][cocoonID]["TargetPos"] = targetPos
     CocoonRegistry[player.UserId][cocoonID]["Active"] = false
+    CocoonRegistry[player.UserId][cocoonID]["StatusEffect"] = statusEffect
 
-    CocoonStartClient:FireClient(player, cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills, droppedMoth)
+    CocoonStartClient:FireClient(player, cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills, droppedMoth, statusEffect)
 end)
 
 function getCocoonTargetPos(targetPlant)

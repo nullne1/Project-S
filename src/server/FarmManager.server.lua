@@ -7,19 +7,18 @@ local PlantModule = require(ReplicatedStorage.Shared.PlantModule)
 local PlayerDataModule = require(ReplicatedStorage.Shared.PlayerDataModule)
 local PlantRegistry = require(ReplicatedStorage.Shared.GameData.PlantRegistry)
 
-local CocoonFinished = ReplicatedStorage.RemoteEvents.CocoonFinished
-
 local PlayerEnteredFarm = ServerStorage.BindableEvents.PlayerEnteredFarm
 local PlayerExitedFarm = ServerStorage.BindableEvents.PlayerExitedFarm
 local PlantDespawned = ServerStorage.BindableEvents.PlantDespawned
+local WormArrived = ServerStorage.BindableEvents.WormArrived
 
 local farmsFolder = workspace.Assets.Parts.Farms
 local plantTemplates = ServerStorage.Bushes:GetChildren()
 
 local rng = Random.new()
-local MAX_TREES_PER_ZONE = math.huge
+local MAX_PLANTS_PER_ZONE = 1
 local MIN_SPACING = 1
-local TREE_DROP_RADIUS = 10
+local PLANT_DROP_RADIUS = 10
 
 local function zoneSetup() 
 	for _, farm in ipairs(farmsFolder:GetChildren()) do
@@ -53,7 +52,7 @@ end
 local function getRandomPointInCylinder(farmFloor)
 	-- SWAPPED AXES for a flat Roblox Cylinder: 
 	-- Y is now used for the wide radius
-	local radius = farmFloor.Size.Y / 2 - TREE_DROP_RADIUS
+	local radius = farmFloor.Size.Y / 2 - PLANT_DROP_RADIUS
 
 	local angle = rng:NextNumber() * math.pi * 2
 	local dist = radius * math.sqrt(rng:NextNumber())
@@ -110,7 +109,7 @@ local function spawnInitialPlants()
 			-- 1. Clean up the table (remove plants that despawned or died)
 
 			-- 2. Spawn a new plant if the zone isn't full
-			if #currentZonePlants < MAX_TREES_PER_ZONE then
+			if #currentZonePlants < MAX_PLANTS_PER_ZONE then
 				local spawnPos = getValidSpawnPoint(zone, currentZonePlants)
 				if spawnPos then
 					local template = plantTemplates[math.random(1, #plantTemplates)]
@@ -137,6 +136,7 @@ local function spawnInitialPlants()
 end
 
 local function replacePlant(name, spawnCFrame, farm)
+	print('hello')
     local farmFloor = farm.Floor
     
     if not activePlants[farmFloor] then
@@ -151,9 +151,9 @@ local function replacePlant(name, spawnCFrame, farm)
 	end
 
 	local start_time = os.time()
-	local duration = 0.1
+	local duration = 0.2
 	local end_time = start_time + duration
-	while (#currentZonePlants < MAX_TREES_PER_ZONE) do
+	while (#currentZonePlants <= MAX_PLANTS_PER_ZONE) do
         local spawnPos = getValidSpawnPoint(farmFloor, currentZonePlants)
         if spawnPos then
             local template = plantTemplates[math.random(1, #plantTemplates)]
@@ -178,7 +178,7 @@ local function farmSetup()
 	PlantDespawned.Event:Connect(replacePlant)
 end
 
-CocoonFinished.OnServerEvent:Connect(function(player, wormModel, targetPlant)
+WormArrived.Event:Connect(function(targetPlant)
     local plantModule = PlantRegistry[targetPlant]
 
     if (plantModule) then

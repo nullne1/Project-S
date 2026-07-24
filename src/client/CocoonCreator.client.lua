@@ -9,8 +9,8 @@ local CocoonFinished = ReplicatedStorage:WaitForChild("RemoteEvents").CocoonFini
 
 local localPlayer = Players.LocalPlayer
 
-CocoonStartClient.OnClientEvent:Connect(function(cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, moth)
-    local cocoon = CocoonModule.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, moth)
+CocoonStartClient.OnClientEvent:Connect(function(cocoonID, type, wormModel, farm, targetPlant, wormCFrame, targetPos, tokenSkills, moth, statusEffect)
+    local cocoon = CocoonModule.new(cocoonID, farm, targetPlant, wormCFrame, targetPos, moth, statusEffect)
     
     -- detect player
     local notCollected = true
